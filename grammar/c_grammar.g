@@ -1,4 +1,24 @@
-grammar C;
+grammar c_grammar;
+
+program
+    :	definition+
+    ;
+
+definition
+    :	type_specifier ID '(' ((arg_specifier ',')* arg_specifier)? ')' compound_statement
+    ;
+
+type_specifier
+    :	'int'
+    ;
+
+arg_specifier
+    :	type_specifier ID
+    ;
+
+compound_statement
+    :	'{' '}'
+    ;
 
 ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
     ;
