@@ -1,5 +1,9 @@
 grammar c_grammar;
 
+options {
+    language = Python;
+}
+
 program
     :	definition+
     ;
