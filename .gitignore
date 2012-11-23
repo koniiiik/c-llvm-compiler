@@ -1,5 +1,8 @@
 *.py[cod]
 
+# antlrworks output
+output
+
 # C extensions
 *.so
 
