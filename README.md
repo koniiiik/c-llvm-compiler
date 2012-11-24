@@ -36,7 +36,7 @@ To set up the environment correctly, we need [antlr 3.1.3][antlr], Python
  4. activate the virtualenv by sourcing the `activate` script in your
     shell
 
-        (env-c-llvm)$ . env-c-llvm/bin/activate
+        $ . env-c-llvm/bin/activate
 
     You'll have to perform this step each time you want to work with the
     compiler. After this your shell prefix should start with
@@ -48,7 +48,7 @@ To set up the environment correctly, we need [antlr 3.1.3][antlr], Python
 
  6. install the ANTLR3 runtime in your env
 
-        (env-c-llvm)$ pip install -r c-llvm-compiler/requirements.txt
+        (env-c-llvm) ... $ pip install -r c-llvm-compiler/requirements.txt
 
  7. download the antlr JAR one level above the git repository
 
@@ -67,8 +67,8 @@ where it can be picked up by the Python code.
 Since newer versions of antlr don't support Python output properly, it is
 necessary to use an older version of antlrworks as well (as it bundles its
 own version of antlr). The correct version of antlrworks containing
-antlr-3.1.3 is 1.2.3 which can be downloaded from [here][antlrworks1] or
-[here][antlrworks2].
+antlr-3.1.3 has been found to be 1.2.3 which can be downloaded from
+[here][antlrworks1] or [here][antlrworks2].
 
 
 [antlr]: http://www.antlr.org/download/antlr-3.1.3.jar
