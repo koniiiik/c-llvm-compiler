@@ -9,7 +9,7 @@ program
     ;
 
 definition
-    :	type_specifier ID '(' ((arg_specifier ',')* arg_specifier)? ')' compound_statement
+    :	type_specifier ID '(' ((arg_specifier ',')* arg_specifier)? ')' compound_statement {print 'found definition';}
     ;
 
 type_specifier
