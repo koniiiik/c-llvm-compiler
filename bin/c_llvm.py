@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(0,'..')
-sys.path.insert(0,'output')
+#!/usr/bin/env python
 import antlr3
-from c_grammarLexer import c_grammarLexer
-from c_grammarParser import c_grammarParser
+from c_llvm.parser.c_grammarLexer import c_grammarLexer
+from c_llvm.parser.c_grammarParser import c_grammarParser
 
 # input = '...what you want to feed into the parser...'
 # char_stream = antlr3.ANTLRStringStream(input)
