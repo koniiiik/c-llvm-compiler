@@ -29,7 +29,7 @@ To set up the environment correctly, we need [antlr 3.1.3][antlr], Python
 
         $ virtualenv --distribute --no-site-packages -p python2.7 env-c-llvm
 
-    This creates a new directory, env-c-llvm, containing a Python
+    This creates a new directory, `env-c-llvm`, containing a Python
     virtualenv. This is useful to install Python packages into, isolated
     from the rest of your system.
 
