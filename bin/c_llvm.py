@@ -1,5 +1,10 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import antlr3
+import sys
+# Pop the first entry which is the path to the directory containing this
+# script.
+sys.path.pop(0)
 from c_llvm.parser.c_grammarLexer import c_grammarLexer
 from c_llvm.parser.c_grammarParser import c_grammarParser
 

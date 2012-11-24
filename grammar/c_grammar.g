@@ -1,7 +1,7 @@
 grammar c_grammar;
 
 options {
-    language = Python;
+    language = Python;
 }
 
 program
