@@ -7,12 +7,12 @@ options {
 translation_unit
     :	external_declaration+
     ;
-    
+
 external_declaration
     :	function_definition {print('found function declaration');}
     |	declaration {print('found declaration');}
     ;
-    
+
 function_definition
     :	declaration_specifiers identifier '(' parameter_list (',' '...')? ')' compound_statement
     ;
@@ -25,7 +25,7 @@ parameter_list
 parameter_declaration
     :	declaration_specifiers declarator
     ;
-    
+
 declaration
     :	declaration_specifiers init_declarator (',' init_declarator)* ';'
     ;
@@ -40,12 +40,16 @@ declarator
     |	'(' declarator ')'
     ;
 
-declaration_specifiers
+declaration_specifiers // TODO
     :	type_specifier
     ;
 
-type_specifier
+type_specifier // TODO
     :	'int'
+    ;
+
+type_name // TODO
+    :	type_specifier
     ;
 
 // Statements
@@ -101,7 +105,73 @@ jump_statement
 // Expressions
 
 expression
-    :	primary_expression
+    :	assignment_expression (',' assignment_expression)*
+    ;
+
+assignment_expression
+    :	conditional_expression
+    |	unary_expression assignment_operator assignment_expression
+    ;
+
+conditional_expression
+    :	logical_or_expression ('?' expression ':' conditional_expression)?
+    ;
+
+logical_or_expression
+    :	logical_and_expression ('||' logical_and_expression)*
+    ;
+
+logical_and_expression
+    :	inclusive_or_expression ('&&' inclusive_or_expression)*
+    ;
+
+inclusive_or_expression
+    :	exclusive_or_expression ('|' exclusive_or_expression)*
+    ;
+
+exclusive_or_expression
+    :	and_expression ('^' and_expression)*
+    ;
+
+and_expression
+    :	equality_expression ('&' equality_expression)*
+    ;
+
+equality_expression
+    :	relational_expression (equality_operator relational_expression)*
+    ;
+
+relational_expression
+    :	shift_expression (relational_operator shift_expression)*
+    ;
+
+shift_expression
+    :	additive_expression (shift_operator additive_expression)*
+    ;
+
+additive_expression
+    :	multiplicative_expression (additive_operator multiplicative_expression)*
+    ;
+
+multiplicative_expression
+    :	cast_expression (multiplicative_operator cast_expression)*
+    ;
+
+cast_expression
+    :	('(' type_name ')')* unary_expression
+    ;
+
+unary_expression
+    :	unary_operator? postfix_expression
+    |	sizeof_expression
+    ;
+
+sizeof_expression
+    :	'sizeof' (unary_expression | '(' type_name ')')
+    ;
+
+postfix_expression // TODO
+    :	
     ;
 
 primary_expression
@@ -126,9 +196,65 @@ string_literal
     :	STRING
     ;
 
+assignment_operator
+    :	ASSIGNMENT_OPERATOR
+    ;
+
+equality_operator
+    :	EQUALITY_OPERATOR
+    ;
+
+relational_operator
+    :	RELATIONAL_OPERATOR
+    ;
+
+shift_operator
+    :	SHIFT_OPERATOR
+    ;
+
+additive_operator
+    :	ADDITIVE_OPERATOR
+    ;
+
+multiplicative_operator
+    :	MULTIPLICATIVE_OPERATOR
+    ;
+
+unary_operator
+    :	UNARY_OPERATOR
+    ;
+
 // Lexer
 
 ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
+    ;
+
+ASSIGNMENT_OPERATOR
+    :	('*'|'/'|'%'|'+'|'-'|'<<'|'>>'|'&'|'^'|'|')? '='
+    ;
+
+EQUALITY_OPERATOR
+    :	'=='|'!='
+    ;
+
+RELATIONAL_OPERATOR
+    :	'>'|'<'|'>='|'<='
+    ;
+
+SHIFT_OPERATOR
+    :	'<<'|'>>'
+    ;
+
+ADDITIVE_OPERATOR
+    :	'+'|'-'
+    ;
+
+MULTIPLICATIVE_OPERATOR
+    :	'*'|'/'|'%'
+    ;
+
+UNARY_OPERATOR
+    :	'+'|'-'|'&'|'*'|'~'|'!'
     ;
 
 COMMENT
