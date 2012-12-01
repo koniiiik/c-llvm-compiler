@@ -162,16 +162,25 @@ cast_expression
     ;
 
 unary_expression
-    :	unary_operator? postfix_expression
+    :	unary_operator? cast_expression
     |	sizeof_expression
+    |	('++'|'--') unary_expression
     ;
 
 sizeof_expression
     :	'sizeof' (unary_expression | '(' type_name ')')
     ;
 
-postfix_expression // TODO
-    :	
+postfix_expression
+    :	primary_expression
+        (   '[' expression ']'
+        |   '(' (assignment_expression (',' assignment_expression)*)? ')'
+        |   '.' identifier
+        |   '->' identifier
+        |   '++'
+        |   '--'
+        )
+    |	'(' type_name ')' '{' initializer_list '}'
     ;
 
 primary_expression
