@@ -180,7 +180,8 @@ postfix_expression
         |   '++'
         |   '--'
         )
-    |	'(' type_name ')' '{' initializer_list '}'
+    // Are we sure we want to support the following?
+    //|	'(' type_name ')' '{' initializer_list '}'
     ;
 
 primary_expression
