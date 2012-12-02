@@ -2,6 +2,7 @@ grammar c_grammar;
 
 options {
     language = Python;
+    backtrack = true;
 }
 
 translation_unit
