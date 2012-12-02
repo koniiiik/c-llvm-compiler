@@ -162,7 +162,8 @@ cast_expression
     ;
 
 unary_expression
-    :	unary_operator? cast_expression
+    :	postfix_expression
+    |	unary_operator cast_expression
     |	sizeof_expression
     |	('++'|'--') unary_expression
     ;
