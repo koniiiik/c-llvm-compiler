@@ -4,6 +4,10 @@ options {
     language = Python;
 }
 
+@init {
+    self.it_number = 0
+}
+
 translation_unit
     :	external_declaration+
     ;
@@ -89,7 +93,10 @@ selection_statement
     ;
 
 iteration_statement returns [code]
-    :	'while' {code="while.cond:\n"} '(' expression ')' {code+=$expression.code+"  \%cmp = icmp ne i32 \%e, 0\n  br i1 \%cmp, label \%while.body, label \%while.end\nwhile.body:\n"} statement {code+=$statement.code+"while.end:\n"}
+@init {
+    self.it_number+=1
+}
+    :	'while' {code="while"+str(self.it_number)+".cond:\n"} '(' expression ')' {code+=$expression.code+"  \%cmp = icmp ne i32 \%e, 0\n  br i1 \%cmp, label \%while"+str(self.it_number)+".body, label \%while"+str(self.it_number)+".end\nwhile"+str(self.it_number)+".body:\n"} statement {code+=$statement.code+"while"+str(self.it_number)+".end:\n"}
     |	'do' statement 'while' '(' expression ')' ';'
     |	'for' '(' expression? ';' expression? ';' expression? ')' statement
     |	'for' '(' declaration expression? ';' expression? ')' statement
