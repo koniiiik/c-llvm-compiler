@@ -54,13 +54,13 @@ type_name // TODO
 
 // Statements
 
-statement
-    :	labeled_statement
-    |	compound_statement
-    |	expression_statement
-    |	selection_statement
-    |	iteration_statement
-    |	jump_statement
+statement returns [code]
+    :	labeled_statement {code=""}
+    |	compound_statement {code=""}
+    |	expression_statement {code=""}
+    |	selection_statement {code=""}
+    |	iteration_statement {code=$iteration_statement.code}
+    |	jump_statement {code=""}
     ;
 
 labeled_statement
@@ -75,7 +75,7 @@ compound_statement
 
 block_item
     :	declaration
-    |	statement
+    |	statement {print $statement.code;}
     ;
 
 expression_statement
@@ -88,8 +88,8 @@ selection_statement
     |	'switch' '(' expression ')' statement
     ;
 
-iteration_statement
-    :	'while' '(' expression ')' statement
+iteration_statement returns [code]
+    :	'while' {code="while.cond:\n"} '(' expression ')' {code+=$expression.code+"  \%cmp = icmp ne i32 \%e, 0\n  br i1 \%cmp, label \%while.body, label \%while.end\nwhile.body:\n"} statement {code+=$statement.code+"while.end:\n"}
     |	'do' statement 'while' '(' expression ')' ';'
     |	'for' '(' expression? ';' expression? ';' expression? ')' statement
     |	'for' '(' declaration expression? ';' expression? ')' statement
@@ -105,8 +105,8 @@ jump_statement
 
 // Expressions
 
-expression
-    :	assignment_expression (',' assignment_expression)*
+expression returns [code]
+    :	{code="  compute expression and put result into \%e\n"} assignment_expression (',' assignment_expression)*
     ;
 
 assignment_expression
