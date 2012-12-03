@@ -2,7 +2,6 @@ grammar c_grammar;
 
 options {
     language = Python;
-    backtrack = true;
 }
 
 translation_unit
@@ -84,7 +83,8 @@ expression_statement
     ;
 
 selection_statement
-    :	'if' '(' expression ')' statement ('else' statement)?
+    :	('if' '(' expression ')' statement 'else') => 'if' '(' expression ')' statement 'else' statement
+    |	('if') => 'if' '(' expression ')' statement
     |	'switch' '(' expression ')' statement
     ;
 
@@ -110,8 +110,8 @@ expression
     ;
 
 assignment_expression
-    :	conditional_expression
-    |	unary_expression assignment_operator assignment_expression
+    :	(unary_expression assignment_operator) => unary_expression assignment_operator assignment_expression
+    |	conditional_expression
     ;
 
 conditional_expression
