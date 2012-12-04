@@ -4,10 +4,6 @@ options {
     language = Python;
 }
 
-@init {
-    self.it_number = 0
-}
-
 translation_unit
     :	external_declaration+
     ;
@@ -58,13 +54,13 @@ type_name // TODO
 
 // Statements
 
-statement returns [code]
-    :	labeled_statement {code=""}
-    |	compound_statement {code=""}
-    |	expression_statement {code=""}
-    |	selection_statement {code=""}
-    |	iteration_statement {code=$iteration_statement.code}
-    |	jump_statement {code=""}
+statement
+    :	labeled_statement
+    |	compound_statement
+    |	expression_statement
+    |	selection_statement
+    |	iteration_statement
+    |	jump_statement
     ;
 
 labeled_statement
@@ -79,7 +75,7 @@ compound_statement
 
 block_item
     :	declaration
-    |	statement {print $statement.code;}
+    |	statement
     ;
 
 expression_statement
@@ -92,11 +88,8 @@ selection_statement
     |	'switch' '(' expression ')' statement
     ;
 
-iteration_statement returns [code]
-@init {
-    self.it_number+=1
-}
-    :	'while' {code="while"+str(self.it_number)+".cond:\n"} '(' expression ')' {code+=$expression.code+"  \%cmp = icmp ne i32 \%e, 0\n  br i1 \%cmp, label \%while"+str(self.it_number)+".body, label \%while"+str(self.it_number)+".end\nwhile"+str(self.it_number)+".body:\n"} statement {code+=$statement.code+"while"+str(self.it_number)+".end:\n"}
+iteration_statement
+    :	'while' '(' expression ')' statement
     |	'do' statement 'while' '(' expression ')' ';'
     |	'for' '(' expression? ';' expression? ';' expression? ')' statement
     |	'for' '(' declaration expression? ';' expression? ')' statement
@@ -112,8 +105,8 @@ jump_statement
 
 // Expressions
 
-expression returns [code]
-    :	{code="  compute expression and put result into \%e\n"} assignment_expression (',' assignment_expression)*
+expression
+    :	assignment_expression (',' assignment_expression)*
     ;
 
 assignment_expression
