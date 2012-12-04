@@ -66,7 +66,7 @@ statement
 
 labeled_statement
     :	identifier ':' statement
-    |	'case' constant ':' statement
+    |	'case' constant_expression ':' statement
     |	'default' ':' statement
     ;
 
@@ -105,6 +105,10 @@ jump_statement
     ;
 
 // Expressions
+
+constant_expression
+    :	conditional_expression
+    ;
 
 expression
     :	assignment_expression (',' assignment_expression)*
