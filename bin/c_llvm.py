@@ -18,4 +18,7 @@ char_stream = antlr3.ANTLRFileStream(sys.argv[1])
 lexer = c_grammarLexer(char_stream)
 tokens = antlr3.CommonTokenStream(lexer)
 parser = c_grammarParser(tokens)
-parser.translation_unit()
+r = parser.translation_unit()
+
+root = r.tree
+print "tree=" + root.toStringTree()
