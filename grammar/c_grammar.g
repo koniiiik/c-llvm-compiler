@@ -206,6 +206,7 @@ identifier
 
 constant
     :	INTEGER
+    |	FLOAT
     |	CHAR
     ;
 
@@ -291,14 +292,64 @@ STRING
     ;
 
 INTEGER
-    :	'1'..'9' ('0'..'9')*
-    ;
-
-CHAR:	'\'' ( ESC_SEQ | ~('\''|'\\') ) '\''
+    :	DECIMAL INT_SUF?
+    |	OCTAL INT_SUF?
+    |	HEXADECIMAL INT_SUF?
     ;
 
 fragment
-HEX_DIGIT :	('0'..'9'|'a'..'f'|'A'..'F') ;
+DECIMAL
+    :	('1'..'9') ('0'..'9')*
+    ;
+
+fragment
+OCTAL
+    :	'0' ('0'..'7')*
+    ;
+
+fragment
+HEXADECIMAL
+    :	'0' ('x'|'X') HEX_DIGIT+
+    ;
+
+fragment
+HEX_DIGIT
+    :	('0'..'9'|'a'..'f'|'A'..'F')
+    ;
+
+fragment
+INT_SUF
+    :	('u'|'U') ('l'|'L')?
+    |	('u'|'U') ('ll'|'LL')
+    |	('l'|'L') ('u'|'U')?
+    |	('ll'|'LL') ('u'|'U')?
+    ;
+
+FLOAT
+    :	DEC_FLOAT
+//  |	HEX_FLOAT Do we really need this ?
+    ;
+
+fragment
+DEC_FLOAT
+    :	FRAC EXP? ('f'|'l'|'F'|'L')?
+    |	('0'..'9')+ EXP ('f'|'l'|'F'|'L')?
+    ;
+
+fragment
+FRAC
+    :	('0'..'9')* '.' ('0'..'9')+
+    |	('0'..'9')+ '.'
+    ;
+
+fragment
+EXP
+    :	('e'|'E') ('+'|'-')? ('0'..'9')+
+    ;
+
+CHAR
+    :	'\'' ( ESC_SEQ | ~('\''|'\\') ) '\''
+    ;
 
 fragment
 ESC_SEQ
