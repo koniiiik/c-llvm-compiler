@@ -115,7 +115,7 @@ expression
     ;
 
 assignment_expression
-    :	(unary_expression ('='|assignment_operator)) => unary_expression ('='|assignment_operator) assignment_expression
+    :	(unary_expression assignment_operator) => unary_expression assignment_operator assignment_expression
     |	conditional_expression
     ;
 
@@ -215,64 +215,36 @@ string_literal
     ;
 
 assignment_operator
-    :	ASSIGNMENT_OPERATOR
+    :	('*'|'/'|'%'|'+'|'-'|'<<'|'>>'|'&'|'^'|'|')? '='
     ;
 
 equality_operator
-    :	EQUALITY_OPERATOR
+    :	'=='|'!='
     ;
 
 relational_operator
-    :	RELATIONAL_OPERATOR
+    :	'>'|'<'|'>='|'<='
     ;
 
 shift_operator
-    :	SHIFT_OPERATOR
+    :	'<<'|'>>'
     ;
 
 additive_operator
-    :	ADDITIVE_OPERATOR
+    :	'+'|'-'
     ;
 
 multiplicative_operator
-    :	MULTIPLICATIVE_OPERATOR
+    :	'*'|'/'|'%'
     ;
 
 unary_operator
-    :	UNARY_OPERATOR
+    :	'+'|'-'|'&'|'*'|'~'|'!'
     ;
 
 // Lexer
 
 ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
-    ;
-
-ASSIGNMENT_OPERATOR
-    :	('*'|'/'|'%'|'+'|'-'|'<<'|'>>'|'&'|'^'|'|')? '='
-    ;
-
-EQUALITY_OPERATOR
-    :	'=='|'!='
-    ;
-
-RELATIONAL_OPERATOR
-    :	'>'|'<'|'>='|'<='
-    ;
-
-SHIFT_OPERATOR
-    :	'<<'|'>>'
-    ;
-
-ADDITIVE_OPERATOR
-    :	'+'|'-'
-    ;
-
-MULTIPLICATIVE_OPERATOR
-    :	'*'|'/'|'%'
-    ;
-
-UNARY_OPERATOR
-    :	'+'|'-'|'&'|'*'|'~'|'!'
     ;
 
 COMMENT
