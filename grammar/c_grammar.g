@@ -182,7 +182,7 @@ postfix_expression
         |   '->' identifier
         |   '++'
         |   '--'
-        )
+        )*
     // Are we sure we want to support the following?
     //|	'(' type_name ')' '{' initializer_list '}'
     ;
