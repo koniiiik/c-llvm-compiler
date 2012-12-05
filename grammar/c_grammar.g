@@ -111,7 +111,7 @@ expression
     ;
 
 assignment_expression
-    :	(unary_expression assignment_operator) => unary_expression assignment_operator assignment_expression
+    :	(unary_expression ('='|assignment_operator)) => unary_expression ('='|assignment_operator) assignment_expression
     |	conditional_expression
     ;
 
