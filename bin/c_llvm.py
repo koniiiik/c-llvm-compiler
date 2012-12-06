@@ -7,6 +7,7 @@ import sys
 sys.path.pop(0)
 from c_llvm.parser.c_grammarLexer import c_grammarLexer
 from c_llvm.parser.c_grammarParser import c_grammarParser
+from c_llvm.ast.base import AstTreeAdaptor
 
 # input = '...what you want to feed into the parser...'
 # char_stream = antlr3.ANTLRStringStream(input)
@@ -18,6 +19,7 @@ char_stream = antlr3.ANTLRFileStream(sys.argv[1])
 lexer = c_grammarLexer(char_stream)
 tokens = antlr3.CommonTokenStream(lexer)
 parser = c_grammarParser(tokens)
+parser.setTreeAdaptor(AstTreeAdaptor())
 r = parser.translation_unit()
 
 root = r.tree
