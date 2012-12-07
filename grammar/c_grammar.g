@@ -5,6 +5,16 @@ options {
     output = AST;
 }
 
+tokens {
+    // A dummy token type for all AST node types where we don't have a
+    // token to put as the root of a subtree.
+    DUMMY;
+}
+
+@header {
+from c_llvm.ast.expressions import *
+}
+
 translation_unit
     :	external_declaration+
     ;
@@ -32,8 +42,7 @@ declaration
     ;
 
 init_declarator
-    :	identifier
-    |	identifier '=' primary_expression
+    :	identifier ('=' primary_expression)?
     ;
 
 declarator
@@ -111,11 +120,21 @@ constant_expression
     ;
 
 expression
-    :	assignment_expression (',' assignment_expression)*
+    :	(e=assignment_expression -> assignment_expression)
+        ((',' assignment_expression)+ -> ^(',' $e assignment_expression+))?
     ;
 
 assignment_expression
-    :	(unary_expression assignment_operator) => unary_expression assignment_operator assignment_expression
+    options {
+        backtrack = true;
+    }
+    :	/*(unary_expression assignment_operator)
+        =>*/ lvalue=unary_expression op=assignment_operator rvalue=assignment_expression
+        -> ^(DUMMY<AssignmentExpressionNode> $op $lvalue $rvalue)
+    /*
+    :	(unary_expression assignment_operator)
+        => unary_expression assignment_operator assignment_expression
+    */
     |	conditional_expression
     ;
 
@@ -215,7 +234,17 @@ string_literal
     ;
 
 assignment_operator
-    :	('*'|'/'|'%'|'+'|'-'|'<<'|'>>'|'&'|'^'|'|')? '='
+    :	'='
+    |	'*='
+    |	'/='
+    |	'%='
+    |	'+='
+    |	'-='
+    |	'<<='
+    |	'>>='
+    |	'&='
+    |	'^='
+    |	'|='
     ;
 
 equality_operator
