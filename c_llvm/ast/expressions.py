@@ -15,3 +15,15 @@ class ExpressionListNode(ExpressionNode):
 class AssignmentExpressionNode(ExpressionNode):
     def toString(self):
         return ""
+
+
+class ConditionalExpressionNode(ExpressionNode):
+    pass
+
+
+class LogicalExpressionNode(ExpressionNode):
+    pass
+
+
+class BitwiseExpressionNode(ExpressionNode):
+    pass

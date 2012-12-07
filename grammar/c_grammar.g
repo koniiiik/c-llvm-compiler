@@ -139,27 +139,29 @@ assignment_expression
     ;
 
 conditional_expression
-    :	logical_or_expression ('?' expression ':' conditional_expression)?
+    :	(condition=logical_or_expression -> logical_or_expression)
+        (('?' if_true=expression ':' if_false=conditional_expression)
+            -> ^('?'<ConditionalExpressionNode> $condition $if_true $if_false))?
     ;
 
 logical_or_expression
-    :	logical_and_expression ('||' logical_and_expression)*
+    :	logical_and_expression ('||'<LogicalExpressionNode>^ logical_and_expression)*
     ;
 
 logical_and_expression
-    :	inclusive_or_expression ('&&' inclusive_or_expression)*
+    :	inclusive_or_expression ('&&'<LogicalExpressionNode>^ inclusive_or_expression)*
     ;
 
 inclusive_or_expression
-    :	exclusive_or_expression ('|' exclusive_or_expression)*
+    :	exclusive_or_expression ('|'<BitwiseExpressionNode>^ exclusive_or_expression)*
     ;
 
 exclusive_or_expression
-    :	and_expression ('^' and_expression)*
+    :	and_expression ('^'<BitwiseExpressionNode>^ and_expression)*
     ;
 
 and_expression
-    :	equality_expression ('&' equality_expression)*
+    :	equality_expression ('&'<BitwiseExpressionNode>^ equality_expression)*
     ;
 
 equality_expression
