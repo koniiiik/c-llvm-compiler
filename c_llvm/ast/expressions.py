@@ -27,3 +27,7 @@ class LogicalExpressionNode(ExpressionNode):
 
 class BitwiseExpressionNode(ExpressionNode):
     pass
+
+
+class EqualityExpressionNode(ExpressionNode):
+    pass

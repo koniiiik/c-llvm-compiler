@@ -165,7 +165,7 @@ and_expression
     ;
 
 equality_expression
-    :	relational_expression (equality_operator relational_expression)*
+    :	relational_expression (EQUALITY_OPERATOR<EqualityExpressionNode>^ relational_expression)*
     ;
 
 relational_expression
@@ -249,7 +249,7 @@ assignment_operator
     |	'|='
     ;
 
-equality_operator
+EQUALITY_OPERATOR
     :	'=='|'!='
     ;
 
