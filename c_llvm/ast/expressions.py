@@ -43,3 +43,7 @@ class ShiftExpressionNode(ExpressionNode):
 
 class AdditiveExpressionNode(ExpressionNode):
     pass
+
+
+class MultiplicativeExpressionNode(ExpressionNode):
+    pass
