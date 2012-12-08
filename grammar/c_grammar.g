@@ -270,10 +270,6 @@ SHIFT_OPERATOR
     :	'<<'|'>>'
     ;
 
-multiplicative_operator
-    :	'*'|'/'|'%'
-    ;
-
 unary_operator
     :	'+'|'-'|'&'|'*'|'~'|'!'
     ;
