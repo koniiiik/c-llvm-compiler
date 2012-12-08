@@ -169,11 +169,11 @@ equality_expression
     ;
 
 relational_expression
-    :	shift_expression (relational_operator shift_expression)*
+    :	shift_expression (RELATIONAL_OPERATOR<RelationalExpressionNode>^ shift_expression)*
     ;
 
 shift_expression
-    :	additive_expression (shift_operator additive_expression)*
+    :	additive_expression (SHIFT_OPERATOR<ShiftExpressionNode>^ additive_expression)*
     ;
 
 additive_expression
@@ -253,11 +253,11 @@ EQUALITY_OPERATOR
     :	'=='|'!='
     ;
 
-relational_operator
+RELATIONAL_OPERATOR
     :	'>'|'<'|'>='|'<='
     ;
 
-shift_operator
+SHIFT_OPERATOR
     :	'<<'|'>>'
     ;
 

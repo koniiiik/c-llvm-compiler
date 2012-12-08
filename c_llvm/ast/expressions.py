@@ -31,3 +31,11 @@ class BitwiseExpressionNode(ExpressionNode):
 
 class EqualityExpressionNode(ExpressionNode):
     pass
+
+
+class RelationalExpressionNode(ExpressionNode):
+    pass
+
+
+class ShiftExpressionNode(ExpressionNode):
+    pass
