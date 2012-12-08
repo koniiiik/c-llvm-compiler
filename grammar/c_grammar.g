@@ -179,7 +179,9 @@ shift_expression
 additive_expression
     // This construct is so clumsy because of a bug in antlr which doesn't
     // allow us to create custom AST nodes out of parser nonterminals
-    // while it is perfectly possible to create default nodes.
+    // while it is perfectly possible to create default nodes. Also, we
+    // can't use a lexer nonterminal here for the same reasons as
+    // described in assignment_operator.
     :	multiplicative_expression (('-'<AdditiveExpressionNode>^ multiplicative_expression)
                                   |('+'<AdditiveExpressionNode>^ multiplicative_expression))*
     ;
@@ -240,6 +242,8 @@ string_literal
     ;
 
 assignment_operator
+    // This has to be a parser rule, not a lexer rule, because otherwise
+    // the parser won't be able to pick up the '=' token used elsewhere.
     :	'='
     |	'*='
     |	'/='
