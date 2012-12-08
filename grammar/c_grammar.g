@@ -190,7 +190,9 @@ multiplicative_expression
     ;
 
 cast_expression
-    :	('(' type_name ')')* unary_expression
+    :	unary_expression
+    |	'(' type_name ')' cast_expression
+        -> ^(DUMMY<CastExpressionNode> type_name cast_expression)
     ;
 
 unary_expression

@@ -47,3 +47,8 @@ class AdditiveExpressionNode(ExpressionNode):
 
 class MultiplicativeExpressionNode(ExpressionNode):
     pass
+
+
+class CastExpressionNode(ExpressionNode):
+    def toString(self):
+        return ""
