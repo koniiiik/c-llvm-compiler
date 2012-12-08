@@ -177,7 +177,11 @@ shift_expression
     ;
 
 additive_expression
-    :	multiplicative_expression (additive_operator multiplicative_expression)*
+    // This construct is so clumsy because of a bug in antlr which doesn't
+    // allow us to create custom AST nodes out of parser nonterminals
+    // while it is perfectly possible to create default nodes.
+    :	multiplicative_expression (('-'<AdditiveExpressionNode>^ multiplicative_expression)
+                                  |('+'<AdditiveExpressionNode>^ multiplicative_expression))*
     ;
 
 multiplicative_expression
@@ -259,10 +263,6 @@ RELATIONAL_OPERATOR
 
 SHIFT_OPERATOR
     :	'<<'|'>>'
-    ;
-
-additive_operator
-    :	'+'|'-'
     ;
 
 multiplicative_operator

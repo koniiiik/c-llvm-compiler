@@ -39,3 +39,7 @@ class RelationalExpressionNode(ExpressionNode):
 
 class ShiftExpressionNode(ExpressionNode):
     pass
+
+
+class AdditiveExpressionNode(ExpressionNode):
+    pass
