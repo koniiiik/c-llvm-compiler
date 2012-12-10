@@ -52,3 +52,23 @@ class MultiplicativeExpressionNode(ExpressionNode):
 class CastExpressionNode(ExpressionNode):
     def toString(self):
         return ""
+
+
+class DereferenceExpressionNode(ExpressionNode):
+    pass
+
+
+class AddressExpressionNode(ExpressionNode):
+    pass
+
+
+class UnaryArithmeticExpressionNode(ExpressionNode):
+    pass
+
+
+class BitwiseNegationExpressionNode(ExpressionNode):
+    pass
+
+
+class LogicalNegationExpressionNode(ExpressionNode):
+    pass

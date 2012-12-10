@@ -197,7 +197,12 @@ cast_expression
 
 unary_expression
     :	postfix_expression
-    |	unary_operator cast_expression
+    |	'*'<DereferenceExpressionNode>^ cast_expression
+    |	'&'<AddressExpressionNode>^ cast_expression
+    |	'+'<UnaryArithmeticExpressionNode>^ cast_expression
+    |	'-'<UnaryArithmeticExpressionNode>^ cast_expression
+    |	'~'<BitwiseNegationExpressionNode>^ cast_expression
+    |	'!'<LogicalNegationExpressionNode>^ cast_expression
     |	sizeof_expression
     |	('++'|'--') unary_expression
     ;
@@ -268,10 +273,6 @@ RELATIONAL_OPERATOR
 
 SHIFT_OPERATOR
     :	'<<'|'>>'
-    ;
-
-unary_operator
-    :	'+'|'-'|'&'|'*'|'~'|'!'
     ;
 
 // Lexer
