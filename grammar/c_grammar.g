@@ -15,6 +15,7 @@ tokens {
 from c_llvm.ast.base import TranslationUnitNode
 from c_llvm.ast.expressions import *
 from c_llvm.ast.declarations import *
+from c_llvm.ast.statements import *
 }
 
 translation_unit
@@ -87,6 +88,7 @@ labeled_statement
 
 compound_statement
     :	'{' block_item* '}'
+        -> ^(DUMMY<CompoundStatementNode> block_item*)
     ;
 
 block_item
@@ -95,7 +97,7 @@ block_item
     ;
 
 expression_statement
-    :	expression? ';'
+    :	expression? ';'!
     ;
 
 selection_statement
