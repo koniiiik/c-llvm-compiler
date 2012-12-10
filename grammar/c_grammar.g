@@ -12,21 +12,25 @@ tokens {
 }
 
 @header {
+from c_llvm.ast.base import TranslationUnitNode
 from c_llvm.ast.expressions import *
 from c_llvm.ast.declarations import *
 }
 
 translation_unit
     :	external_declaration+
+        -> ^(DUMMY<TranslationUnitNode> external_declaration+)
     ;
 
 external_declaration
-    :	function_definition {print('found function declaration');}
-    |	declaration {print('found declaration');}
+    :	function_definition
+    |	declaration
     ;
 
 function_definition // TODO
     :	declaration_specifiers identifier '(' parameter_list (',' '...')? ')' compound_statement
+        -> ^(DUMMY<FunctionDefinitionNode> declaration_specifiers
+             identifier parameter_list? compound_statement)
     ;
 
 parameter_list // TODO

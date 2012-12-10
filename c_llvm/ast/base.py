@@ -28,3 +28,8 @@ class AstTreeAdaptor(CommonTreeAdaptor):
     """
     def createWithPayload(self, payload):
         return AstNode(payload)
+
+
+class TranslationUnitNode(AstNode):
+    def toString(self):
+        return "translation unit\n"

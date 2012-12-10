@@ -6,7 +6,7 @@ int main() {
     a >>= 1 << 4 < 512;
     g = (int)4.7;
 }
-int foo, bar = 4;
+int foo, bar;
  int int   main()    {}
 int foo;
 int main()    {}
