@@ -37,6 +37,18 @@ class AstNode(CommonTree):
     def dupNode(self):
         return AstNode(self)
 
+    def generate_code(self, state):
+        """
+        The main walker method. Each node should implement this. The state
+        argument is an instance of CompilerState, a class that holds all
+        kinds of information like all symbol tables, next free register,
+        list of compilation errors etc.
+
+        Should return a string, which is the output LLVM code for this AST
+        node.
+        """
+        raise NotImplementedError
+
 
 class AstTreeAdaptor(CommonTreeAdaptor):
     """
