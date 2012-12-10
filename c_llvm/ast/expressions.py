@@ -8,6 +8,13 @@ class ExpressionNode(AstNode):
     pass
 
 
+def BinaryExpressionNode(ExpressionNode):
+    child_attributes = {
+        'left': 0,
+        'right': 1,
+    }
+
+
 class ExpressionListNode(ExpressionNode):
     pass
 
@@ -21,31 +28,31 @@ class ConditionalExpressionNode(ExpressionNode):
     pass
 
 
-class LogicalExpressionNode(ExpressionNode):
+class LogicalExpressionNode(BinaryExpressionNode):
     pass
 
 
-class BitwiseExpressionNode(ExpressionNode):
+class BitwiseExpressionNode(BinaryExpressionNode):
     pass
 
 
-class EqualityExpressionNode(ExpressionNode):
+class EqualityExpressionNode(BinaryExpressionNode):
     pass
 
 
-class RelationalExpressionNode(ExpressionNode):
+class RelationalExpressionNode(BinaryExpressionNode):
     pass
 
 
-class ShiftExpressionNode(ExpressionNode):
+class ShiftExpressionNode(BinaryExpressionNode):
     pass
 
 
-class AdditiveExpressionNode(ExpressionNode):
+class AdditiveExpressionNode(BinaryExpressionNode):
     pass
 
 
-class MultiplicativeExpressionNode(ExpressionNode):
+class MultiplicativeExpressionNode(BinaryExpressionNode):
     pass
 
 
