@@ -13,6 +13,7 @@ tokens {
 
 @header {
 from c_llvm.ast.expressions import *
+from c_llvm.ast.declarations import *
 }
 
 translation_unit
@@ -24,25 +25,26 @@ external_declaration
     |	declaration {print('found declaration');}
     ;
 
-function_definition
+function_definition // TODO
     :	declaration_specifiers identifier '(' parameter_list (',' '...')? ')' compound_statement
     ;
 
-parameter_list
+parameter_list // TODO
     :	parameter_declaration (',' parameter_declaration)*
     |
     ;
 
-parameter_declaration
+parameter_declaration // TODO
     :	declaration_specifiers declarator
     ;
 
 declaration
     :	declaration_specifiers init_declarator (',' init_declarator)* ';'
+        -> ^(DUMMY<DeclarationNode> declaration_specifiers init_declarator)+
     ;
 
-init_declarator
-    :	identifier ('=' primary_expression)?
+init_declarator // TODO
+    :	identifier
     ;
 
 declarator
