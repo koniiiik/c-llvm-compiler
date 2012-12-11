@@ -31,7 +31,8 @@ class AstNode(CommonTree):
         try:
             return self.getChild(self.child_attributes[name])
         except KeyError:
-            return super(AstNode, self).__getattr__(name)
+            raise AttributeError("%s has no attribute %s"
+                                 % (self.__class__.__name__, name))
 
     def __setattr__(self, name, value):
         try:

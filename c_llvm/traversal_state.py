@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from c_llvm.exceptions import CompilationError
 from c_llvm.types import TypeLibrary
 
@@ -67,12 +69,16 @@ class ScopedSymbolTable(object):
         return otherwise
 
 
+ResultType = namedtuple('ResultType', ['value', 'type', 'is_constant'])
+
+
 class CompilerState(object):
     def __init__(self):
         self.symbols = ScopedSymbolTable()
         self.types = TypeLibrary()
         self.errors = []
         self.next_free_id = 0
+        self.last_result = None
 
     def _get_next_number(self):
         result = self.next_free_id
@@ -99,3 +105,11 @@ class CompilerState(object):
         Are we in the global scope or inside a function definition?
         """
         return len(self.symbols.dicts) == 1
+
+    def set_result(self, value, type, is_constant):
+        self.last_result = ResultType(value, type, is_constant)
+
+    def pop_result(self):
+        result = self.last_result
+        self.last_result = None
+        return result

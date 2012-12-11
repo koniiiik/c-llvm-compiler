@@ -5,19 +5,19 @@ class ExpressionNode(AstNode):
     """
     Common superclass for all expression type AST nodes.
     """
-    def allocate_result_register(self, state):
-        register = state.get_tmp_register()
-        state.last_expression_register = register
-        return register
-
-    def get_type(self, state):
-        raise NotImplementedError
+    pass
 
 
 class BinaryExpressionNode(ExpressionNode):
     child_attributes = {
         'left': 0,
         'right': 1,
+    }
+
+
+class UnaryExpressionNode(ExpressionNode):
+    child_attributes = {
+        'operand': 0,
     }
 
 
@@ -79,8 +79,25 @@ class UnaryArithmeticExpressionNode(ExpressionNode):
     pass
 
 
-class BitwiseNegationExpressionNode(ExpressionNode):
-    pass
+class BitwiseNegationExpressionNode(UnaryExpressionNode):
+    def generate_code(self, state):
+        operand_code = self.operand.generate_code(state)
+        value = state.pop_result()
+        if value is None:
+            # There was a compilation error somewhere down the line.
+            return ""
+
+        if (not value.type.is_integer()):
+            self.log_error(state, "operand is not integer")
+            return ""
+        if value.is_constant:
+            state.set_result(~value.value, value.type, True)
+            return ""
+        register = state.get_tmp_register()
+        state.set_result(register, value.type, False)
+        return "%s\n%s = xor %s %s, -1" % (operand_code, register,
+                                           value.type.llvm_type,
+                                           value.value)
 
 
 class LogicalNegationExpressionNode(ExpressionNode):
@@ -98,7 +115,8 @@ class VariableExpressionNode(ExpressionNode):
         except KeyError:
             self.log_error(state, "unknown variable: %s" % (str(self.name),))
             return ""
-        register = self.allocate_result_register(state)
+        register = state.get_tmp_register()
+        state.set_result(value=register, type=var.type, is_constant=False)
         return "%s = load %s* %s" % (register, var.type.llvm_type,
                                      var.register)
 
@@ -108,14 +126,16 @@ class IntegerConstantNode(ExpressionNode):
         'value': 0,
     }
 
-    def get_type(self, state):
-        # TODO: decide based on suffixes
-        return state.types.get_type('int')
-
     def generate_code(self, state):
         # TODO: handle suffixes
         # TODO: hex and oct representations
-        register = self.allocate_result_register(state)
-        return "%s = add %s 0, %s" % (register,
-                                      self.get_type(state).llvm_type,
-                                      str(self.value))
+        upper = str(self.value).upper()
+        is_unsigned = 'U' in upper
+        while not upper.isdigit():
+            upper = upper[:-1]
+        # Thanks to base=0 this parses hex and oct literals as well.
+        value = int(upper, base=0)
+        state.set_result(value=value,
+                         type=state.types.get_type('int'),
+                         is_constant=True)
+        return ""

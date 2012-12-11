@@ -9,6 +9,7 @@ run: $(SAMPLES)
 
 test/%.ll: test/%.c build
 	bin/c_llvm.py $<
+	cat $@
 	$(LLI) $@
 
 build: c_llvm/parser/$(GRAMMAR)Parser.py c_llvm/parser/__init__.py

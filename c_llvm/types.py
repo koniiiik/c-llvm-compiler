@@ -6,9 +6,12 @@ class VoidType(object):
     llvm_type = 'i8'
     sizeof = 0
     name = 'void'
-    # One of void, int, char, pointer, function.
+    # One of void, int, char, bool, pointer, function.
     internal_type = 'void'
     default_value = 0
+
+    def is_integer(self):
+        return self.internal_type in {'int', 'char', 'bool'}
 
 
 class IntType(VoidType):
