@@ -69,7 +69,6 @@ class AstNode(CommonTree):
         Should return a string, which is the output LLVM code for this AST
         node.
         """
-        return ""
         raise NotImplementedError
 
 
