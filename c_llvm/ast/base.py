@@ -1,5 +1,10 @@
+from sys import stderr
+
 from antlr3.tokens import CommonToken
 from antlr3.tree import CommonTree, CommonTreeAdaptor
+
+from c_llvm.exceptions import CompilationError
+from c_llvm.traversal_state import CompilerState
 
 
 class AstNode(CommonTree):
@@ -44,6 +49,15 @@ class AstNode(CommonTree):
             message,
         ))
 
+    def process_children(self, state):
+        """
+        Process the child nodes and return a list of pieces of output
+        code for each child.
+        """
+        output = []
+        for child in self.children:
+            output.append(child.generate_code(state))
+
     def generate_code(self, state):
         """
         The main walker method. Each node should implement this. The state
@@ -69,3 +83,13 @@ class AstTreeAdaptor(CommonTreeAdaptor):
 class TranslationUnitNode(AstNode):
     def toString(self):
         return "translation unit\n"
+
+    def generate_code(self):
+        state = CompilerState()
+
+        children = self.process_children(state)
+
+        if state.errors:
+            raise CompilationError("\n".join(state.errors))
+
+        return "\n".join(children)
