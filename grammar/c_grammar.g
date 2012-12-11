@@ -244,7 +244,7 @@ identifier
     ;
 
 constant
-    :	INTEGER
+    :	INTEGER -> ^(DUMMY<IntegerConstantNode> INTEGER)
     |	FLOAT
     |	CHAR
     ;
