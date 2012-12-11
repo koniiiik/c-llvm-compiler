@@ -115,5 +115,6 @@ class IntegerConstantNode(ExpressionNode):
     def generate_code(self, state):
         # TODO: handle suffixes
         register = self.allocate_result_register(state)
-        return "%s = %s %s" % (register, self.get_type(state).llvm_type,
-                               str(self.value))
+        return "%s = add %s 0, %s" % (register,
+                                      self.get_type(state).llvm_type,
+                                      str(self.value))
