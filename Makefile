@@ -1,10 +1,15 @@
 GRAMMAR := c_grammar
 ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
+LLI ?= lli
 
-run: build
-	bin/c_llvm.py test/trivial.c
-	bin/c_llvm.py test/simple.c
+SAMPLES = test/trivial.ll test/simple.ll
+
+run: $(SAMPLES)
+
+test/%.ll: test/%.c build
+	bin/c_llvm.py $<
+	$(LLI) $@
 
 build: c_llvm/parser/$(GRAMMAR)Parser.py c_llvm/parser/__init__.py
 
