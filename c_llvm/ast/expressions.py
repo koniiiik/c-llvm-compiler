@@ -159,7 +159,8 @@ class VariableExpressionNode(ExpressionNode):
             self.log_error(state, "unknown variable: %s" % (str(self.name),))
             return ""
         register = state.get_tmp_register()
-        state.set_result(value=register, type=var.type, is_constant=False)
+        state.set_result(value=register, type=var.type, is_constant=False,
+                         pointer=var.register)
         return "%s = load %s* %s" % (register, var.type.llvm_type,
                                      var.register)
 

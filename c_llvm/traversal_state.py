@@ -69,7 +69,7 @@ class ScopedSymbolTable(object):
         return otherwise
 
 
-ResultType = namedtuple('ResultType', ['value', 'type', 'is_constant'])
+ResultType = namedtuple('ResultType', ['value', 'type', 'is_constant', 'pointer'])
 
 
 class CompilerState(object):
@@ -106,8 +106,8 @@ class CompilerState(object):
         """
         return len(self.symbols.dicts) == 1
 
-    def set_result(self, value, type, is_constant):
-        self.last_result = ResultType(value, type, is_constant)
+    def set_result(self, value, type, is_constant, pointer=None):
+        self.last_result = ResultType(value, type, is_constant, pointer)
 
     def pop_result(self):
         result = self.last_result
