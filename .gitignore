@@ -36,3 +36,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Vim swapfiles
+.*.swp
+
+# antlr-generated parser package
+c_llvm/parser
