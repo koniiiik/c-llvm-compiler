@@ -93,7 +93,7 @@ class BitwiseNegationExpressionNode(UnaryExpressionNode):
             # There was a compilation error somewhere down the line.
             return ""
 
-        if (not value.type.is_integer()):
+        if (not value.type.is_integer):
             self.log_error(state, "operand is not integer")
             return ""
         if value.is_constant:

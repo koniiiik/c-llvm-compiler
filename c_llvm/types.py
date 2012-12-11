@@ -10,8 +10,17 @@ class VoidType(object):
     internal_type = 'void'
     default_value = 0
 
+    @property
     def is_integer(self):
         return self.internal_type in {'int', 'char', 'bool'}
+
+    @property
+    def is_pointer(self):
+        return self.internal_type == 'pointer'
+
+    @property
+    def is_void(self):
+        return self.internal_type == 'void'
 
 
 class IntType(VoidType):

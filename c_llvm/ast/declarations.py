@@ -60,7 +60,7 @@ ret %(type)s %(register2)s
         # TODO: Add the function to the symbol table.
         # TODO: Verify that the function isn't already defined.
         type = state.types.get_type(str(self.return_type))
-        if type.internal_type == 'void':
+        if type.is_void:
             ret_statement = "ret void"
         else:
             ret_statement = self.ret_template % {
