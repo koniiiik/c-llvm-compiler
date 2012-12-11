@@ -228,12 +228,10 @@ postfix_expression
         |   '++'
         |   '--'
         )*
-    // Are we sure we want to support the following?
-    //|	'(' type_name ')' '{' initializer_list '}'
     ;
 
 primary_expression
-    :	identifier
+    :	identifier -> ^(DUMMY<VariableExpressionNode> identifier)
     |	constant
     |	string_literal
     |	'(' expression ')'
