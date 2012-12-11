@@ -8,6 +8,7 @@ class VoidType(object):
     name = 'void'
     # One of void, int, char, pointer, function.
     internal_type = 'void'
+    default_value = 0
 
 
 class IntType(VoidType):

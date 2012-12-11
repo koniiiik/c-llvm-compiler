@@ -83,7 +83,7 @@ class CompilerState(object):
         return "%%tmp.%d" % (self._get_next_number(),)
 
     def get_var_register(self, name):
-        return "%%var.%s.%d" % (self._get_next_number(),)
+        return "%%var.%s.%d" % (name, self._get_next_number())
 
     def get_label(self):
         return "label%d" % (self._get_next_number(),)
@@ -93,3 +93,9 @@ class CompilerState(object):
 
     def leave_block(self):
         self.symbols.pop()
+
+    def is_global(self):
+        """
+        Are we in the global scope or inside a function definition?
+        """
+        return len(self.symbols.dicts) == 1
