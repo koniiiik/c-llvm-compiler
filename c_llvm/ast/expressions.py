@@ -55,8 +55,45 @@ class ShiftExpressionNode(BinaryExpressionNode):
 
 
 class AdditionExpressionNode(BinaryExpressionNode):
+    template = """
+%(left_code)s
+%(right_code)s
+%(add)s
+"""
+
     def generate_code(self, state):
-        return ""
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return ""
+        if right_result.type.is_pointer:
+            left_result, right_result = right_result, left_result
+            left_code, right_code = right_code, left_code
+
+        if (left_result.type.is_pointer and
+                right_result.type.is_integer):
+            raise NotImplementedError
+        elif (left_result.type.is_arithmetic and
+                right_result.type.is_arithmetic):
+            # TODO: casts
+            # TODO: floats
+            register = state.get_tmp_register()
+            add = "%s = add %s %s, %s" % (
+                register, left_result.type.llvm_type, left_result.value,
+                right_result.value
+            )
+            state.set_result(register, left_result.type, False)
+        else:
+            self.log_error(state, "incompatible types")
+            return ""
+
+        return self.template % {
+            'left_code': left_code,
+            'right_code': right_code,
+            'add': add,
+        }
 
 
 class SubtractionExpressionNode(BinaryExpressionNode):

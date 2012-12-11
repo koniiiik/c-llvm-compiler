@@ -15,6 +15,14 @@ class VoidType(object):
         return self.internal_type in {'int', 'char', 'bool'}
 
     @property
+    def is_float(self):
+        return self.internal_type in {'float', 'double', 'extended'}
+
+    @property
+    def is_arithmetic(self):
+        return self.is_integer or self.is_float
+
+    @property
     def is_pointer(self):
         return self.internal_type == 'pointer'
 

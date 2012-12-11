@@ -4,7 +4,7 @@ int main()
 {
     int j;
     i;
-    j;
+    i + j + 31;
     47;
     ~i;
 }
