@@ -26,6 +26,39 @@ class ExpressionListNode(ExpressionNode):
 
 
 class AssignmentExpressionNode(ExpressionNode):
+    child_attributes = {
+        'op': 0,
+        'lvalue': 1,
+        'rvalue': 2,
+    }
+    template = """
+%(lvalue_code)s
+%(rvalue_code)s
+%(assignment)s
+"""
+
+    def generate_code(self, state):
+        lvalue_code = self.lvalue.generate_code(state)
+        lvalue_result = state.pop_result()
+        rvalue_code = self.rvalue.generate_code(state)
+        rvalue_result = state.pop_result()
+        if not lvalue_result.pointer:
+            self.log_error(state, "not an lvalue")
+            return ""
+        # TODO: check types and cast
+        # TODO: compound assignments
+        assignment = "store %s %s, %s* %s" % (
+            rvalue_result.type.llvm_type, rvalue_result.value,
+            lvalue_result.type.llvm_type, lvalue_result.pointer,
+        )
+        state.set_result(rvalue_result.value, rvalue_result.type,
+                         rvalue_result.is_constant)
+        return self.template % {
+            'lvalue_code': lvalue_code,
+            'rvalue_code': rvalue_code,
+            'assignment': assignment,
+        }
+
     def toString(self):
         return ""
 

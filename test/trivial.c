@@ -7,4 +7,6 @@ int main()
     i + j + 31;
     47;
     ~i;
+    int k;
+    k = ~j;
 }
