@@ -24,3 +24,4 @@ r = parser.translation_unit()
 
 root = r.tree
 print "tree=" + root.toStringTree()
+print root.generate_code()

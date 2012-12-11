@@ -57,6 +57,7 @@ class AstNode(CommonTree):
         output = []
         for child in self.children:
             output.append(child.generate_code(state))
+        return output
 
     def generate_code(self, state):
         """
@@ -68,6 +69,7 @@ class AstNode(CommonTree):
         Should return a string, which is the output LLVM code for this AST
         node.
         """
+        return ""
         raise NotImplementedError
 
 

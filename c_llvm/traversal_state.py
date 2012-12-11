@@ -1,4 +1,5 @@
 from c_llvm.exceptions import CompilationError
+from c_llvm.types import TypeLibrary
 
 
 class ScopedSymbolTable(object):
@@ -69,6 +70,7 @@ class ScopedSymbolTable(object):
 class CompilerState(object):
     def __init__(self):
         self.symbols = ScopedSymbolTable()
+        self.types = TypeLibrary()
         self.errors = []
         self.next_free_id = 0
 
@@ -85,3 +87,9 @@ class CompilerState(object):
 
     def get_label(self):
         return "label%d" % (self._get_next_number(),)
+
+    def enter_block(self):
+        self.symbols.push()
+
+    def leave_block(self):
+        self.symbols.pop()
