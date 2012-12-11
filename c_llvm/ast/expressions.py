@@ -8,7 +8,7 @@ class ExpressionNode(AstNode):
     pass
 
 
-def BinaryExpressionNode(ExpressionNode):
+class BinaryExpressionNode(ExpressionNode):
     child_attributes = {
         'left': 0,
         'right': 1,
