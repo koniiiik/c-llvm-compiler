@@ -54,8 +54,14 @@ class ShiftExpressionNode(BinaryExpressionNode):
     pass
 
 
-class AdditiveExpressionNode(BinaryExpressionNode):
-    pass
+class AdditionExpressionNode(BinaryExpressionNode):
+    def generate_code(self, state):
+        return ""
+
+
+class SubtractionExpressionNode(BinaryExpressionNode):
+    def generate_code(self, state):
+        return ""
 
 
 class MultiplicativeExpressionNode(BinaryExpressionNode):

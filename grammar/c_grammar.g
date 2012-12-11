@@ -185,8 +185,8 @@ additive_expression
     // while it is perfectly possible to create default nodes. Also, we
     // can't use a lexer nonterminal here for the same reasons as
     // described in assignment_operator.
-    :	multiplicative_expression (('-'<AdditiveExpressionNode>^ multiplicative_expression)
-                                  |('+'<AdditiveExpressionNode>^ multiplicative_expression))*
+    :	multiplicative_expression (('-'<SubtractionExpressionNode>^ multiplicative_expression)
+                                  |('+'<AdditionExpressionNode>^ multiplicative_expression))*
     ;
 
 multiplicative_expression
