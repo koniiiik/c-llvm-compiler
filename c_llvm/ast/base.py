@@ -37,6 +37,13 @@ class AstNode(CommonTree):
     def dupNode(self):
         return AstNode(self)
 
+    def log_error(self, state, message):
+        state.errors.append("%d:%d: %s" % (
+            self.getLine(),
+            self.getCharPositionInLine(),
+            message,
+        ))
+
     def generate_code(self, state):
         """
         The main walker method. Each node should implement this. The state

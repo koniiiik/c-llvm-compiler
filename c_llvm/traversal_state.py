@@ -68,3 +68,24 @@ class ScopedSymbolTable(object):
             if key in d:
                 return d[key]
         return otherwise
+
+
+class CompilerState(object):
+    def __init__(self):
+        self.symbols = ScopedSymbolTable()
+        self.errors = []
+        self.next_free_id = 0
+
+    def _get_next_number(self):
+        result = self.next_free_id
+        self.next_free_id += 1
+        return result
+
+    def get_tmp_register(self):
+        return "%%tmp.%d" % (self._get_next_number(),)
+
+    def get_var_register(self, name):
+        return "%%var.%s.%d" % (self._get_next_number(),)
+
+    def get_label(self):
+        return "label%d" % (self._get_next_number(),)
