@@ -1,8 +1,4 @@
-class ScopePopException(Exception):
-    """
-    Raised in case it is impossible to pop() another scope.
-    """
-    pass
+from c_llvm.exceptions import CompilationError
 
 
 class ScopedSymbolTable(object):
