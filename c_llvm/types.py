@@ -78,6 +78,13 @@ class IntType(BaseType):
         }
 
 
+class BoolType(BaseType):
+    sizeof = 1
+    internal_type = 'bool'
+    llvm_type = 'i1'
+    default_value = 0
+
+
 class TypeLibrary(object):
     """
     Library of known types. Prepopulated with builtin types, can create
@@ -88,6 +95,7 @@ class TypeLibrary(object):
             'void': VoidType(),
             'int': IntType(sizeof=8),
             'char': IntType(sizeof=1),
+            '_Bool': BoolType()
         }
 
     def get_type(self, name):
