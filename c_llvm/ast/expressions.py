@@ -30,7 +30,69 @@ class ConditionalExpressionNode(ExpressionNode):
 
 
 class LogicalExpressionNode(BinaryExpressionNode):
-    pass
+    template = """
+%(left_code)s
+%(left_bool_cast)s
+br i1 %(left_bool_value)s, label %%%(left_true_target)s, label %%%(left_false_target)s
+%(right_label)s:
+%(right_code)s
+%(right_bool_cast)s
+br i1 %(right_bool_value)s, label %%%(right_true_target)s, label %%%(right_false_target)s
+%(is_true_label)s:
+br label %%%(end_label)s
+%(is_false_label)s:
+br label %%%(end_label)s
+%(end_label)s:
+%(result_register)s = phi %(result_type)s [0, %%%(is_false_label)s], [1, %%%(is_true_label)s]
+"""
+
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        left_bool_cast = left_result.type.cast_to_bool(left_result, None,
+                                                       state, self)
+        left_bool_result = state.pop_result()
+
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        right_bool_cast = right_result.type.cast_to_bool(right_result, None,
+                                                         state, self)
+        right_bool_result = state.pop_result()
+
+        result_register = state.get_tmp_register()
+        state.set_result(result_register, state.types.get_type('int'))
+
+        right_label = state.get_label()
+        is_true_label = state.get_label()
+        is_false_label = state.get_label()
+        end_label = state.get_label()
+        context = {
+            'left_code': left_code,
+            'left_bool_cast': left_bool_cast,
+            'left_bool_value': left_bool_result.value,
+            'right_label': right_label,
+            'right_code': right_code,
+            'right_bool_cast': right_bool_cast,
+            'right_bool_value': right_bool_result.value,
+            'is_true_label': is_true_label,
+            'is_false_label': is_false_label,
+            'end_label': end_label,
+            'result_register': result_register,
+            'result_type': state.types.get_type('int').llvm_type,
+        }
+
+        if str(self.getToken()) == '||':
+            context.update(left_true_target=is_true_label,
+                           left_false_target=right_label,
+                           right_true_target=is_true_label,
+                           right_false_target=is_false_label)
+        else:
+            context.update(left_true_target=right_label,
+                           left_false_target=is_false_label,
+                           right_true_target=is_true_label,
+                           right_false_target=is_false_label)
+
+        return self.template % context
 
 
 class BitwiseExpressionNode(BinaryExpressionNode):
