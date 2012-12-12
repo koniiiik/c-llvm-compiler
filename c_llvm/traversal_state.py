@@ -106,7 +106,7 @@ class CompilerState(object):
         """
         return len(self.symbols.dicts) == 1
 
-    def set_result(self, value, type, is_constant, pointer=None):
+    def set_result(self, value, type, is_constant=False, pointer=None):
         self.last_result = ResultType(value, type, is_constant, pointer)
 
     def pop_result(self):

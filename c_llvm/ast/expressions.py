@@ -73,7 +73,7 @@ class AdditionExpressionNode(BinaryExpressionNode):
                 register, left_result.type.llvm_type, left_result.value,
                 right_result.value
             )
-            state.set_result(register, left_result.type, False)
+            state.set_result(register, left_result.type)
         else:
             instance.log_error(state, "incompatible types")
             raise CompilationError()
@@ -130,7 +130,7 @@ class SubtractionExpressionNode(BinaryExpressionNode):
                 register, left_result.type.llvm_type, left_result.value,
                 right_result.value
             )
-            state.set_result(register, left_result.type, False)
+            state.set_result(register, left_result.type)
         else:
             instance.log_error(state, "incompatible types")
             raise CompilationError()
@@ -199,7 +199,7 @@ class BitwiseNegationExpressionNode(UnaryExpressionNode):
             state.set_result(~value.value, value.type, True)
             return ""
         register = state.get_tmp_register()
-        state.set_result(register, value.type, False)
+        state.set_result(register, value.type)
         return "%s\n%s = xor %s %s, -1" % (operand_code, register,
                                            value.type.llvm_type,
                                            value.value)
@@ -221,7 +221,7 @@ class VariableExpressionNode(ExpressionNode):
             self.log_error(state, "unknown variable: %s" % (str(self.name),))
             return ""
         register = state.get_tmp_register()
-        state.set_result(value=register, type=var.type, is_constant=False,
+        state.set_result(value=register, type=var.type,
                          pointer=var.register)
         return "%s = load %s* %s" % (register, var.type.llvm_type,
                                      var.register)
