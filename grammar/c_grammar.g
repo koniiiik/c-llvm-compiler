@@ -234,7 +234,7 @@ primary_expression
     :	identifier -> ^(DUMMY<VariableExpressionNode> identifier)
     |	constant
     |	string_literal
-    |	'(' expression ')'
+    |	'('! expression ')'!
     ;
 
 // Parser -> Lexer mapping
