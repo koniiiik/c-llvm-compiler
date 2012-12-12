@@ -2,11 +2,11 @@ int i;
 
 int main()
 {
-    int j;
+    int j, k;
     i;
     i + j + 31;
     47;
     ~i;
-    int k;
     k = ~j;
+    i += k + 5;
 }

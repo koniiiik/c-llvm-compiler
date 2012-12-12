@@ -25,44 +25,6 @@ class ExpressionListNode(ExpressionNode):
     pass
 
 
-class AssignmentExpressionNode(ExpressionNode):
-    child_attributes = {
-        'op': 0,
-        'lvalue': 1,
-        'rvalue': 2,
-    }
-    template = """
-%(lvalue_code)s
-%(rvalue_code)s
-%(assignment)s
-"""
-
-    def generate_code(self, state):
-        lvalue_code = self.lvalue.generate_code(state)
-        lvalue_result = state.pop_result()
-        rvalue_code = self.rvalue.generate_code(state)
-        rvalue_result = state.pop_result()
-        if not lvalue_result.pointer:
-            self.log_error(state, "not an lvalue")
-            return ""
-        # TODO: check types and cast
-        # TODO: compound assignments
-        assignment = "store %s %s, %s* %s" % (
-            rvalue_result.type.llvm_type, rvalue_result.value,
-            lvalue_result.type.llvm_type, lvalue_result.pointer,
-        )
-        state.set_result(rvalue_result.value, rvalue_result.type,
-                         rvalue_result.is_constant)
-        return self.template % {
-            'lvalue_code': lvalue_code,
-            'rvalue_code': rvalue_code,
-            'assignment': assignment,
-        }
-
-    def toString(self):
-        return ""
-
-
 class ConditionalExpressionNode(ExpressionNode):
     pass
 
@@ -94,16 +56,10 @@ class AdditionExpressionNode(BinaryExpressionNode):
 %(add)s
 """
 
-    def generate_code(self, state):
-        left_code = self.left.generate_code(state)
-        left_result = state.pop_result()
-        right_code = self.right.generate_code(state)
-        right_result = state.pop_result()
-        if right_result is None or left_result is None:
-            return ""
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
         if right_result.type.is_pointer:
             left_result, right_result = right_result, left_result
-            left_code, right_code = right_code, left_code
 
         if (left_result.type.is_pointer and
                 right_result.type.is_integer):
@@ -119,7 +75,22 @@ class AdditionExpressionNode(BinaryExpressionNode):
             )
             state.set_result(register, left_result.type, False)
         else:
-            self.log_error(state, "incompatible types")
+            instance.log_error(state, "incompatible types")
+            raise CompilationError()
+        return add
+
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return ""
+
+        try:
+            add = self.perform_operation(self, state, left_result,
+                                         right_result)
+        except CompilationError:
             return ""
 
         return self.template % {
@@ -215,4 +186,68 @@ class IntegerConstantNode(ExpressionNode):
         state.set_result(value=value,
                          type=state.types.get_type('int'),
                          is_constant=True)
+        return ""
+
+
+class AssignmentExpressionNode(ExpressionNode):
+    child_attributes = {
+        'op': 0,
+        'lvalue': 1,
+        'rvalue': 2,
+    }
+    template = """
+%(lvalue_code)s
+%(rvalue_code)s
+%(operation)s
+%(assignment)s
+"""
+    compound_operations = {
+        '*=': None,
+        '/=': None,
+        '%=': None,
+        '+=': AdditionExpressionNode.perform_operation,
+        '-=': None,
+        '<<=': None,
+        '>>=': None,
+        '&=': None,
+        '^=': None,
+        '|=': None,
+    }
+
+    def generate_code(self, state):
+        lvalue_code = self.lvalue.generate_code(state)
+        lvalue_result = state.pop_result()
+        rvalue_code = self.rvalue.generate_code(state)
+        rvalue_result = state.pop_result()
+        if not lvalue_result.pointer:
+            self.log_error(state, "not an lvalue")
+            return ""
+        if str(self.op) in self.compound_operations:
+            func = self.compound_operations[str(self.op)]
+            # TODO: remove this
+            if func is None:
+                raise NotImplementedError
+            try:
+                operation_code = func(self, state, lvalue_result,
+                                      rvalue_result)
+            except CompilationError:
+                return ""
+            rvalue_result = state.pop_result()
+        else:
+            operation_code = ""
+        # TODO: check types and cast
+        assignment = "store %s %s, %s* %s" % (
+            rvalue_result.type.llvm_type, rvalue_result.value,
+            lvalue_result.type.llvm_type, lvalue_result.pointer,
+        )
+        state.set_result(rvalue_result.value, rvalue_result.type,
+                         rvalue_result.is_constant)
+        return self.template % {
+            'lvalue_code': lvalue_code,
+            'rvalue_code': rvalue_code,
+            'operation': operation_code,
+            'assignment': assignment,
+        }
+
+    def toString(self):
         return ""
