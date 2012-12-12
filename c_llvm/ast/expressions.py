@@ -87,6 +87,12 @@ class AdditionExpressionNode(BinaryExpressionNode):
         if right_result is None or left_result is None:
             return ""
 
+        if right_result.is_constant and left_result.is_constant:
+            # TODO: verify types and cast
+            state.set_result(right_result.value + left_result.value,
+                             left_result.type, True)
+            return ""
+
         try:
             add = self.perform_operation(self, state, left_result,
                                          right_result)
