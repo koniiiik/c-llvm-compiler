@@ -107,8 +107,60 @@ class AdditionExpressionNode(BinaryExpressionNode):
 
 
 class SubtractionExpressionNode(BinaryExpressionNode):
+    template = """
+%(left_code)s
+%(right_code)s
+%(subtract)s
+"""
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if (left_result.type.is_pointer and
+                right_result.type.is_integer):
+            raise NotImplementedError
+        elif (left_result.type.is_pointer and
+                right_result.type.is_pointer):
+            raise NotImplementedError
+        elif (left_result.type.is_arithmetic and
+                right_result.type.is_arithmetic):
+            # TODO: casts
+            # TODO: floats
+            register = state.get_tmp_register()
+            add = "%s = sub %s %s, %s" % (
+                register, left_result.type.llvm_type, left_result.value,
+                right_result.value
+            )
+            state.set_result(register, left_result.type, False)
+        else:
+            instance.log_error(state, "incompatible types")
+            raise CompilationError()
+        return add
+
     def generate_code(self, state):
-        return ""
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return ""
+
+        if right_result.is_constant and left_result.is_constant:
+            # TODO: verify types and cast
+            state.set_result(left_result.value - right_result.value,
+                             left_result.type, True)
+            return ""
+
+        try:
+            subtract = self.perform_operation(self, state, left_result,
+                                              right_result)
+        except CompilationError:
+            return ""
+
+        return self.template % {
+            'left_code': left_code,
+            'right_code': right_code,
+            'subtract': subtract,
+        }
 
 
 class MultiplicativeExpressionNode(BinaryExpressionNode):
@@ -212,7 +264,7 @@ class AssignmentExpressionNode(ExpressionNode):
         '/=': None,
         '%=': None,
         '+=': AdditionExpressionNode.perform_operation,
-        '-=': None,
+        '-=': SubtractionExpressionNode.perform_operation,
         '<<=': None,
         '>>=': None,
         '&=': None,
