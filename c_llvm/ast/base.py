@@ -68,7 +68,8 @@ class AstNode(CommonTree):
         list of compilation errors etc.
 
         Should return a string, which is the output LLVM code for this AST
-        node.
+        node. If an error is encountered, it should be logged using
+        log_error but a string should be returned anyway.
         """
         raise NotImplementedError
 
