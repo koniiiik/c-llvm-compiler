@@ -13,3 +13,10 @@ int main()
 
     i || j && k;
 }
+
+void logical_exprs()
+{
+    int i, j, k;
+
+    i || j && k;
+}

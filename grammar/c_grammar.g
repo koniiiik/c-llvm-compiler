@@ -63,6 +63,7 @@ declaration_specifiers // TODO
 
 type_specifier // TODO
     :	'int'
+    |	'void'
     ;
 
 type_name // TODO
