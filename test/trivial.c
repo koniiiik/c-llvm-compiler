@@ -30,4 +30,6 @@ void statements()
         j;
     else if (3)
         k;
+    while (1) i;
+    do k; while(1);
 }

@@ -80,11 +80,49 @@ If.%(num)d.End:
         }
 
 
-class WhileNode(AstNode):
-    pass
+class WhileStatement(AstNode):
+    child_attributes = {
+        'exp': 0,
+        'statement': 1
+    }
+
+    def generate_code(self, state):
+        return self.template % {
+            'cmp': state.get_tmp_register(),
+            'exp_code': self.exp.generate_code(state),
+            'exp_res': state.get_tmp_register(),
+            'num': state._get_next_number(),
+            'statement_code': self.statement.generate_code(state),
+        }
 
 
-class DoWhileNode(AstNode):
-    pass
+class WhileNode(WhileStatement):
+    # end previous basic block with br
+    template = """
+br label %%While.%(num)d.Test
+While.%(num)d.Test:
+%(exp_code)s
+%(exp_res)s = add i64 1, 1
+%(cmp)s = icmp ne i64 %(exp_res)s, 0
+br i1 %(cmp)s, label %%While.%(num)d.Body, label %%While.%(num)d.End
+While.%(num)d.Body:
+%(statement_code)s
+br label %%While.%(num)d.Test
+While.%(num)d.End:
+"""
 
 
+class DoWhileNode(WhileStatement):
+    # end previous basic block with br
+    template = """
+br label %%While.%(num)d.Body
+While.%(num)d.Body:
+%(statement_code)s
+br label %%While.%(num)d.Test
+While.%(num)d.Test:
+%(exp_code)s
+%(exp_res)s = add i64 1, 1
+%(cmp)s = icmp ne i64 %(exp_res)s, 0
+br i1 %(cmp)s, label %%While.%(num)d.Body, label %%While.%(num)d.End
+While.%(num)d.End:
+"""
