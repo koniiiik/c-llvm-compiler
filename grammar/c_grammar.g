@@ -133,8 +133,8 @@ iteration_statement
 
 jump_statement
     :	'goto' identifier ';' ///< 'goto' is not supported
-    |	'continue' ';'
-    |	'break' ';'
+    |	'break' ';' -> ^('break'<BreakStatementNode>)
+    |	'continue' ';' -> ^('continue'<ContinueStatementNode>)
     |	'return' expression? ';' -> ^('return'<ReturnStatementNode> expression?)
     ;
 

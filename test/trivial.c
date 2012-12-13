@@ -34,5 +34,11 @@ void statements()
         k;
     while (1) ;
     do k; while(1);
-    for (i = 10; i; i -= 1) i;
+    for (i = 10; i; i -= 1)
+    {
+        if(1)
+            continue;
+        else
+            break;
+    }
 }

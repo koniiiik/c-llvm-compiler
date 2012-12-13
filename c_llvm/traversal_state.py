@@ -83,6 +83,7 @@ class CompilerState(object):
         self.next_free_id = 0
         self.last_result = None
         self.return_type = None
+        self.cycles = []
 
     def _get_next_number(self):
         result = self.next_free_id
@@ -117,3 +118,10 @@ class CompilerState(object):
         result = self.last_result
         self.last_result = None
         return result
+
+    def enter_cycle(self, break_label, continue_label):
+        self.cycles.append((break_label, continue_label))
+
+    def leave_cycle(self):
+        self.cycles.pop()
+
