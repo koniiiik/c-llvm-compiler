@@ -194,6 +194,7 @@ class BreakStatementNode(AstNode):
     def generate_code(self, state):
         if not state.cycles:
             self.log_error(state, "'break' used outside of cycle")
+            return ""
         return "br label %%%s" % (state.cycles[-1][0])
 
 
@@ -201,6 +202,7 @@ class ContinueStatementNode(AstNode):
     def generate_code(self, state):
         if not state.cycles:
             self.log_error(state, "'break' used outside of cycle")
+            return ""
         return "br label %%%s" % (state.cycles[-1][1])
 
 
