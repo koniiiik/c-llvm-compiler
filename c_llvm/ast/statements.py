@@ -28,11 +28,11 @@ class IfNode(AstNode):
     template = """
 %(exp_code)s
 %(exp_cast_code)s
-br i1 %(exp_cast_value)s, label %%If.%(num)d.True, label %%If.%(num)d.False
-If.%(num)d.True:
+br i1 %(exp_cast_value)s, label %%If%(num)d.True, label %%If%(num)d.False
+If%(num)d.True:
 %(statement_code)s
-br label %%If.%(num)d.False
-If.%(num)d.False:
+br label %%If%(num)d.False
+If%(num)d.False:
 """
 
     def generate_code(self, state):
@@ -65,14 +65,14 @@ class IfElseNode(AstNode):
 %(exp_code)s
 %(exp_res)s = add i64 1, 1
 %(cmp)s = icmp ne i64 %(exp_res)s, 0
-br i1 %(cmp)s, label %%If.%(num)d.True, label %%If.%(num)d.False
-If.%(num)d.True:
+br i1 %(cmp)s, label %%If%(num)d.True, label %%If%(num)d.False
+If%(num)d.True:
 %(statement1_code)s
-br label %%If.%(num)d.End
-If.%(num)d.False:
+br label %%If%(num)d.End
+If%(num)d.False:
 %(statement2_code)s
-br label %%If.%(num)d.End
-If.%(num)d.End:
+br label %%If%(num)d.End
+If%(num)d.End:
 """
 
     def generate_code(self, state):
@@ -105,32 +105,32 @@ class WhileStatement(AstNode):
 class WhileNode(WhileStatement):
     # end previous basic block with br
     template = """
-br label %%While.%(num)d.Test
-While.%(num)d.Test:
+br label %%While%(num)d.Test
+While%(num)d.Test:
 %(exp_code)s
 %(exp_res)s = add i64 1, 1
 %(cmp)s = icmp ne i64 %(exp_res)s, 0
-br i1 %(cmp)s, label %%While.%(num)d.Body, label %%While.%(num)d.End
-While.%(num)d.Body:
+br i1 %(cmp)s, label %%While%(num)d.Body, label %%While%(num)d.End
+While%(num)d.Body:
 %(statement_code)s
-br label %%While.%(num)d.Test
-While.%(num)d.End:
+br label %%While%(num)d.Test
+While%(num)d.End:
 """
 
 
 class DoWhileNode(WhileStatement):
     # end previous basic block with br
     template = """
-br label %%While.%(num)d.Body
-While.%(num)d.Body:
+br label %%While%(num)d.Body
+While%(num)d.Body:
 %(statement_code)s
-br label %%While.%(num)d.Test
-While.%(num)d.Test:
+br label %%While%(num)d.Test
+While%(num)d.Test:
 %(exp_code)s
 %(exp_res)s = add i64 1, 1
 %(cmp)s = icmp ne i64 %(exp_res)s, 0
-br i1 %(cmp)s, label %%While.%(num)d.Body, label %%While.%(num)d.End
-While.%(num)d.End:
+br i1 %(cmp)s, label %%While%(num)d.Body, label %%While%(num)d.End
+While%(num)d.End:
 """
 
 
@@ -144,17 +144,17 @@ class ForNode(AstNode):
 
     template = """
 %(e1_code)s
-br label %%For.%(num)d.Test
-For.%(num)d.Test:
+br label %%For%(num)d.Test
+For%(num)d.Test:
 %(e2_code)s
 %(e2_res)s = add i64 1, 1
 %(cmp)s = icmp ne i64 %(e2_res)s, 0
-br i1 %(cmp)s, label %%For.%(num)d.Body, label %%For.%(num)d.End
-For.%(num)d.Body:
+br i1 %(cmp)s, label %%For%(num)d.Body, label %%For%(num)d.End
+For%(num)d.Body:
 %(statement_code)s
 %(e3_code)s
-br label %%For.%(num)d.Test
-For.%(num)d.End:
+br label %%For%(num)d.Test
+For%(num)d.End:
 """
 
     def generate_code(self, state):
