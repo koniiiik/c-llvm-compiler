@@ -95,8 +95,10 @@ statement
 
 labeled_statement
     :	identifier ':' statement ///< not supported
-    |	'case' constant_expression ':' statement
-    |	'default' ':' statement
+    |	'case' e=constant_expression ':' s=statement
+        -> ^('case'<CaseStatementNode> $e $s)
+    |	'default' ':' s=statement
+        -> ^('default'<DefaultStatementNode> $s)
     ;
 
 compound_statement
@@ -119,7 +121,8 @@ selection_statement
             ^(DUMMY<IfElseNode> $e $s1 $s2)
     |	('if') => 'if' '(' e=expression ')' s=statement ->
             ^(DUMMY<IfNode> $e $s)
-    |	'switch' '(' expression ')' statement
+    |	'switch' '(' e=expression ')' s=statement
+        -> ^('switch'<SwitchStatementNode> $e $s)
     ;
 
 iteration_statement

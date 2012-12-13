@@ -221,3 +221,100 @@ class ReturnStatementNode(AstNode):
         # TODO: cast
         return "ret %s %s" % (expression_result.type.llvm_type,
                               expression_result.value)
+
+
+class SwitchStatementNode(AstNode):
+    child_attributes = {
+        'exp': 0,
+        'statement': 1
+    }
+
+    template = """
+%(exp_code)s
+switch i64 %(exp_value)s, label %%%(default_label)s [ %(labels_list)s ]
+%(statement_code)s
+%(default_label_code)s
+"""
+
+    def generate_code(self, state):
+        num = state._get_next_number()
+        state.enter_switch(num)
+        exp_code = self.exp.generate_code(state)
+        exp_value = state.pop_result().value
+        default_label = "Switch%d.Default" % num
+        labels_list = ""
+        statement_code = self.statement.generate_code(state)
+        # if 'default' label was not found, create one at the end, llvm needs it
+        if not state.switches[-1][1]:
+            default_label_code = "br label %%%s\n%s:\n" % (default_label, default_label)
+        else:
+            default_label_code = ""
+        for label in state.switches[-1][2]:
+            labels_list += label
+        state.leave_switch()
+        return self.template % {
+            'exp_code': exp_code,
+            'exp_value': exp_value,
+            'default_label': default_label,
+            'default_label_code': default_label_code,
+            'labels_list': labels_list,
+            'statement_code': statement_code,
+        }
+
+
+class CaseStatementNode(AstNode):
+    child_attributes = {
+        'exp': 0,
+        'statement': 1
+    }
+
+    template = """
+br label %%%(case_label)s
+%(case_label)s:
+%(statement_code)s
+"""
+
+    def generate_code(self, state):
+        if not state.switches:
+            self.log_error(state, "'case' used outside of 'switch' statement")
+            return ""
+        current_switch = state.switches[-1]
+        exp_code = self.exp.generate_code(state)
+        exp_result = state.pop_result()
+        if not exp_result.is_constant:
+            self.log_error(state, "'case' expression must be constant")
+            return ""
+        case_num = exp_result.value
+        num = current_switch[0]
+        case_label = "Switch%d.Case%d" % (num, case_num)
+        current_switch[2].append("i64 %d, label %%%s\n" % (case_num, case_label))
+        statement_code = self.statement.generate_code(state)
+        return self.template % {
+            'case_label': case_label,
+            'statement_code': statement_code,
+        }
+
+
+class DefaultStatementNode(AstNode):
+    child_attributes = {
+        'statement': 0
+    }
+
+    template = """
+br label %%%(default_label)s
+%(default_label)s:
+%(statement_code)s
+"""
+
+    def generate_code(self, state):
+        if not state.switches:
+            self.log_error(state, "'default' used outside of 'switch' statement")
+            return ""
+        current_switch = state.switches[-1]
+        current_switch[1] = True
+        default_label = "Switch%d.Default" % current_switch[0]
+        statement_code = self.statement.generate_code(state)
+        return self.template % {
+            'default_label': default_label,
+            'statement_code': statement_code,
+        }

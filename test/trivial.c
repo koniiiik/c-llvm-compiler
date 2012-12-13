@@ -41,4 +41,14 @@ void statements()
         else
             break;
     }
+    switch (i+j) {
+        i && j;
+        case 4: {
+            switch (i) {
+                case 4: i+=4;
+            }
+        }
+        default: i++;
+        case 5: i--;
+    }
 }
