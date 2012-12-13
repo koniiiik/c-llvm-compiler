@@ -126,3 +126,38 @@ While.%(num)d.Test:
 br i1 %(cmp)s, label %%While.%(num)d.Body, label %%While.%(num)d.End
 While.%(num)d.End:
 """
+
+
+class ForNode(AstNode):
+    child_attributes = {
+        'exp1': 0,
+        'exp2': 1,
+        'exp3': 2,
+        'statement': 3
+    }
+
+    template = """
+%(e1_code)s
+br label %%For.%(num)d.Test
+For.%(num)d.Test:
+%(e2_code)s
+%(e2_res)s = add i64 1, 1
+%(cmp)s = icmp ne i64 %(e2_res)s, 0
+br i1 %(cmp)s, label %%For.%(num)d.Body, label %%For.%(num)d.End
+For.%(num)d.Body:
+%(statement_code)s
+%(e3_code)s
+br label %%For.%(num)d.Test
+For.%(num)d.End:
+"""
+
+    def generate_code(self, state):
+        return self.template % {
+            'cmp': state.get_tmp_register(),
+            'e1_code': self.exp1.generate_code(state),
+            'e2_code': self.exp2.generate_code(state),
+            'e3_code': self.exp3.generate_code(state),
+            'e2_res': state.get_tmp_register(),
+            'num': state._get_next_number(),
+            'statement_code': self.statement.generate_code(state),
+        }

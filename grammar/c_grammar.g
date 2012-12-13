@@ -123,8 +123,10 @@ selection_statement
 iteration_statement
     :	'while' '(' e=expression ')' s=statement -> ^(DUMMY<WhileNode> $e $s)
     |	'do' s=statement 'while' '(' e=expression ')' ';' -> ^(DUMMY<DoWhileNode> $e $s)
-    |	'for' '(' expression? ';' expression? ';' expression? ')' statement
-    |	'for' '(' declaration expression? ';' expression? ')' statement
+    |	'for' '(' e1=expression? ';' e2=expression? ';' e3=expression? ')' s=statement ->
+            ^(DUMMY<ForNode> $e1 $e2 $e3 $s)
+    |	'for' '(' d=declaration e2=expression? ';' e3=expression? ')' s=statement ->
+            ^(DUMMY<ForNode> $d $e2 $e3 $s)
     ;
 
 // 'goto' is not supported
