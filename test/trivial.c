@@ -20,3 +20,14 @@ void logical_exprs()
 
     i || j && k;
 }
+
+void statements()
+{
+    int i, j, k;
+    if (1)
+        i;
+    else if (2)
+        j;
+    else if (3)
+        k;
+}

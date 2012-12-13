@@ -93,7 +93,7 @@ statement
     ;
 
 labeled_statement
-    :	identifier ':' statement
+    :	identifier ':' statement ///< not supported
     |	'case' constant_expression ':' statement
     |	'default' ':' statement
     ;
@@ -113,14 +113,16 @@ expression_statement
     ;
 
 selection_statement
-    :	('if' '(' expression ')' statement 'else') => 'if' '(' expression ')' statement 'else' statement
-    |	('if') => 'if' '(' expression ')' statement
+    :	('if' '(' expression ')' statement 'else') => 'if' '(' e=expression ')' s1=statement 'else' s2=statement ->
+            ^(DUMMY<IfElseNode> $e $s1 $s2)
+    |	('if') => 'if' '(' e=expression ')' s=statement ->
+            ^(DUMMY<IfNode> $e $s)
     |	'switch' '(' expression ')' statement
     ;
 
 iteration_statement
-    :	'while' '(' expression ')' statement
-    |	'do' statement 'while' '(' expression ')' ';'
+    :	'while' '(' e=expression ')' s=statement -> ^(DUMMY<WhileNode> $e $s)
+    |	'do' s=statement 'while' '(' e=expression ')' ';' -> ^(DUMMY<DoWhileNode> $e $s)
     |	'for' '(' expression? ';' expression? ';' expression? ')' statement
     |	'for' '(' declaration expression? ';' expression? ')' statement
     ;
