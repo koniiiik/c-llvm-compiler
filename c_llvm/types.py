@@ -8,6 +8,9 @@ class BaseType(object):
     internal_type = None
     default_value = 'undef'
 
+    def __init__(self, name):
+        self.name = name
+
     @property
     def is_integer(self):
         return self.internal_type in {'int', 'bool'}
@@ -96,6 +99,10 @@ class PointerType(BaseType):
     def llvm_type(self):
         return "%s *" % (self.target_type.llvm_type,)
 
+    @property
+    def name(self):
+        return "%s*" % (self.target_type.name,)
+
 
 class TypeLibrary(object):
     """
@@ -103,12 +110,12 @@ class TypeLibrary(object):
     derived types (pointers, arrays) on demand.
     """
     def __init__(self):
-        char_type = IntType(sizeof=1)
+        char_type = IntType(sizeof=1, name='char')
         builtins = {
-            'void': VoidType(),
-            'int': IntType(sizeof=8),
+            'void': VoidType(name='void'),
+            'int': IntType(sizeof=8, name='int'),
             'char': char_type,
-            '_Bool': BoolType(),
+            '_Bool': BoolType(name='_Bool'),
             # We create the following pointer type explicitly because LLVM
             # doesn't allow void* and suggests using i8* instead.
             'void*': PointerType(char_type),
@@ -120,6 +127,15 @@ class TypeLibrary(object):
 
     def set_type(self, name, type):
         self._types[name] = type
+
+    def get_pointer_type(self, type):
+        name = "%s*" % (type.name,)
+        try:
+            return self._types[name]
+        except KeyError:
+            ptr_type = PointerType(type)
+            self._types[name] = ptr_type
+            return ptr_type
 
     def cast_value(self, value, target_type, state, ast_node):
         """

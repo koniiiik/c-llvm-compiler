@@ -12,7 +12,7 @@ class DeclarationNode(AstNode):
     def generate_code(self, state):
         # TODO: check redeclarations
         is_global = state.is_global()
-        state.declaration_stack.append(str(self.var_type))
+        state.declaration_stack.append(state.types.get_type(str(self.var_type)))
         type = self.declarator.get_type(state)
         identifier = self.declarator.get_identifier()
         state.declaration_stack.pop()
@@ -99,14 +99,6 @@ class DeclaratorNode(AstNode):
         """
         Returns the Type instance of this declarator.
         """
-        return state.types.get_type(self.get_type_key(state))
-
-    def get_type_key(self, state):
-        """
-        Returns the key of this type used to access the actual Type
-        instance in the type library. This method should ensure that the
-        type gets registered in the library.
-        """
         raise NotImplementedError
 
     def get_identifier(self):
@@ -122,7 +114,7 @@ class IdentifierDeclaratorNode(DeclaratorNode):
         'identifier': 0,
     }
 
-    def get_type_key(self, state):
+    def get_type(self, state):
         return state.declaration_stack[-1]
 
     def get_identifier(self):
@@ -130,12 +122,6 @@ class IdentifierDeclaratorNode(DeclaratorNode):
 
 
 class PointerDeclaratorNode(DeclaratorNode):
-    def get_type_key(self, state):
-        child_key = self.inner_declarator.get_type_key(state)
-        key = "%s*" % (child_key,)
-        try:
-            state.types.get_type(key)
-        except KeyError:
-            child_type = state.types.get_type(child_key)
-            state.types.set_type(key, PointerType(child_type))
-        return key
+    def get_type(self, state):
+        child_type = self.inner_declarator.get_type(state)
+        return state.types.get_pointer_type(child_type)
