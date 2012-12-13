@@ -235,7 +235,29 @@ class CastExpressionNode(ExpressionNode):
 
 
 class DereferenceExpressionNode(ExpressionNode):
-    pass
+    child_attributes = {
+        'expression': 0,
+    }
+    template = """
+%(expr_code)s
+%(register)s = load %(type)s %(pointer)s
+"""
+
+    def generate_code(self, state):
+        expr_code = self.expression.generate_code(state)
+        expr_result = state.pop_result()
+        if not expr_result.type.is_pointer:
+            self.log_error(state, "dereferencing a non-pointer value")
+            return ""
+        register = state.get_tmp_register()
+        state.set_result(register, expr_result.type.target_type,
+                         pointer=expr_result.value)
+        return self.template % {
+            'expr_code': expr_code,
+            'register': register,
+            'type': expr_result.type.llvm_type,
+            'pointer': expr_result.value,
+        }
 
 
 class AddressExpressionNode(ExpressionNode):
