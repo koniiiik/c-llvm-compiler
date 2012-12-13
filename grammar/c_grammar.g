@@ -131,9 +131,8 @@ iteration_statement
             ^(DUMMY<ForNode> $d $e2 $e3 $s)
     ;
 
-// 'goto' is not supported
 jump_statement
-    :	'goto' identifier ';'
+    :	'goto' identifier ';' ///< 'goto' is not supported
     |	'continue' ';'
     |	'break' ';'
     |	'return' expression? ';' -> ^('return'<ReturnStatementNode> expression?)
