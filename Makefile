@@ -8,6 +8,9 @@ SAMPLES = test/trivial.ll test/pointers.ll test/simple.ll
 run: $(SAMPLES)
 
 test/%.ll: test/%.c build
+	@echo
+	@echo ===============================================
+	@echo
 	bin/c_llvm.py $<
 	cat $@
 	$(LLI) $@
