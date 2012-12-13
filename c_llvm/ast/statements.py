@@ -27,9 +27,8 @@ class IfNode(AstNode):
     #FIXME where is the result of expression ?
     template = """
 %(exp_code)s
-%(exp_res)s = add i64 1, 1
-%(cmp)s = icmp ne i64 %(exp_res)s, 0
-br i1 %(cmp)s, label %%If.%(num)d.True, label %%If.%(num)d.False
+%(exp_cast_code)s
+br i1 %(exp_cast_value)s, label %%If.%(num)d.True, label %%If.%(num)d.False
 If.%(num)d.True:
 %(statement_code)s
 br label %%If.%(num)d.False
@@ -37,10 +36,17 @@ If.%(num)d.False:
 """
 
     def generate_code(self, state):
+        exp_code = self.exp.generate_code(state)
+        exp_result = state.pop_result()
+        exp_cast_code = exp_result.type.cast_to_bool(exp_result, None,
+                                                     state, self)
+        exp_cast_result = state.pop_result()
+
         return self.template % {
             'cmp': state.get_tmp_register(),
-            'exp_code': self.exp.generate_code(state),
-            'exp_res': state.get_tmp_register(),
+            'exp_code': exp_code,
+            'exp_cast_code': exp_cast_code,
+            'exp_cast_value': exp_cast_result.value,
             'num': state._get_next_number(),
             'statement_code': self.statement.generate_code(state),
         }
