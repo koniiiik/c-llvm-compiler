@@ -96,3 +96,8 @@ class TranslationUnitNode(AstNode):
             raise CompilationError("\n".join(state.errors))
 
         return "\n".join(children)
+
+
+class EmptyNode(AstNode):
+    def generate_code(self, state):
+        return ""

@@ -30,7 +30,7 @@ void statements()
         j;
     else if (3)
         k;
-    while (1) i;
+    while (1) ;
     do k; while(1);
     for (i = 10; i; i -= 1) i;
 }

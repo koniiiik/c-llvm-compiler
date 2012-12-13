@@ -12,6 +12,7 @@ tokens {
 }
 
 @header {
+from c_llvm.ast.base import EmptyNode
 from c_llvm.ast.base import TranslationUnitNode
 from c_llvm.ast.expressions import *
 from c_llvm.ast.declarations import *
@@ -109,7 +110,8 @@ block_item
     ;
 
 expression_statement
-    :	expression? ';'!
+    :	e+=expression? ';' -> {$e is None or not $e}? DUMMY<EmptyNode>
+                          -> $e
     ;
 
 selection_statement
