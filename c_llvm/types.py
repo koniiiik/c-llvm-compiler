@@ -118,6 +118,9 @@ class TypeLibrary(object):
     def get_type(self, name):
         return self._types[name]
 
+    def set_type(self, name, type):
+        self._types[name] = type
+
     def cast_value(self, value, target_type, state, ast_node):
         """
         Returns the code required to cast value to target_type and sets

@@ -3,7 +3,7 @@ ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
 LLI ?= lli
 
-SAMPLES = test/trivial.ll test/simple.ll
+SAMPLES = test/trivial.ll test/pointers.ll test/simple.ll
 
 run: $(SAMPLES)
 

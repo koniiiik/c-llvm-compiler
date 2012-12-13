@@ -1,4 +1,5 @@
 from c_llvm.ast.base import AstNode
+from c_llvm.types import PointerType
 from c_llvm.variables import Variable
 
 
