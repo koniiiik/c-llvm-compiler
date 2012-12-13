@@ -49,12 +49,23 @@ declaration
     ;
 
 init_declarator // TODO
-    :	identifier
+    :	declarator
     ;
 
 declarator
-    :	identifier
-    |	'(' declarator ')'
+    :	pointer declarator -> ^(DUMMY<PointerDeclaratorNode> declarator)
+    |	direct_declarator
+    ;
+
+direct_declarator
+    :	identifier -> ^(DUMMY<IdentifierDeclaratorNode> identifier)
+    |	'('! declarator ')'!
+    // TODO: arrays
+    // TODO: functions
+    ;
+
+pointer
+    :	'*' TYPE_QUALIFIER*
     ;
 
 declaration_specifiers // TODO
@@ -283,6 +294,10 @@ SHIFT_OPERATOR
     ;
 
 // Lexer
+
+TYPE_QUALIFIER
+    :	'const'|'volatile'|'restrict'
+    ;
 
 ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
     ;

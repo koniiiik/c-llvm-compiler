@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import deque, namedtuple
 
 from c_llvm.exceptions import CompilationError
 from c_llvm.types import TypeLibrary
@@ -76,6 +76,9 @@ class CompilerState(object):
     def __init__(self):
         self.symbols = ScopedSymbolTable()
         self.types = TypeLibrary()
+        # declaration_scope is used in declarators where it contains
+        # declaration specifiers.
+        self.declaration_stack = deque()
         self.errors = []
         self.next_free_id = 0
         self.last_result = None

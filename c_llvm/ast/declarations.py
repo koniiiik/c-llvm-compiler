@@ -5,20 +5,23 @@ from c_llvm.variables import Variable
 class DeclarationNode(AstNode):
     child_attributes = {
         'var_type': 0,
-        'name': 1,
+        'declarator': 1,
     }
 
     def generate_code(self, state):
         # TODO: check redeclarations
         is_global = state.is_global()
-        type = state.types.get_type(str(self.var_type))
+        state.declaration_stack.append(str(self.var_type))
+        type = self.declarator.get_type(state)
+        identifier = self.declarator.get_identifier()
+        state.declaration_stack.pop()
         if is_global:
-            register = '@%s' % (self.name,)
+            register = '@%s' % (identifier,)
         else:
-            register = state.get_var_register(self.name)
-        var = Variable(type=type, name=str(self.name), register=register,
+            register = state.get_var_register(identifier)
+        var = Variable(type=type, name=identifier, register=register,
                        is_global=is_global)
-        state.symbols[str(self.name)] = var
+        state.symbols[identifier] = var
         if is_global:
             return "%(register)s = global %(type)s %(value)s" % {
                 'register': var.register,
@@ -81,3 +84,54 @@ ret %(type)s %(register2)s
 
     def toStringTree(self):
         return "%s\n" % (super(FunctionDefinitionNode, self).toStringTree(),)
+
+
+class DeclaratorNode(AstNode):
+    child_attributes = {
+        'inner_declarator': 0,
+    }
+
+    def get_type(self, state):
+        """
+        Returns the Type instance of this declarator.
+        """
+        return state.types.get_type(self.get_type_key(state))
+
+    def get_type_key(self, state):
+        """
+        Returns the key of this type used to access the actual Type
+        instance in the type library. This method should ensure that the
+        type gets registered in the library.
+        """
+        raise NotImplementedError
+
+    def get_identifier(self):
+        """
+        Drills down through all levels of pointer and array specifiers to
+        the identifier.
+        """
+        return self.inner_declarator.get_identifier()
+
+
+class IdentifierDeclaratorNode(DeclaratorNode):
+    child_attributes = {
+        'identifier': 0,
+    }
+
+    def get_type_key(self, state):
+        return state.declaration_stack[-1]
+
+    def get_identifier(self):
+        return str(self.identifier)
+
+
+class PointerDeclaratorNode(DeclaratorNode):
+    def get_type_key(self, state):
+        child_key = self.inner_declarator.get_type_key(state)
+        key = "%s*" % (child_key,)
+        try:
+            state.types.get_type(key)
+        except KeyError:
+            child_type = state.types.get_type(child_key)
+            state.types.set_type(key, PointerType(child_type))
+        return key

@@ -6,7 +6,7 @@ class BaseType(object):
     sizeof = None
     # One of void, int, bool, pointer, function.
     internal_type = None
-    default_value = None
+    default_value = 'undef'
 
     @property
     def is_integer(self):
@@ -85,21 +85,38 @@ class BoolType(BaseType):
     default_value = 0
 
 
+class PointerType(BaseType):
+    sizeof = 8 # TODO: this is not portable
+    internal_type = 'pointer'
+
+    def __init__(self, target_type):
+        self.target_type = target_type
+
+    @property
+    def llvm_type(self):
+        return "%s *" % (self.target_type.llvm_type,)
+
+
 class TypeLibrary(object):
     """
     Library of known types. Prepopulated with builtin types, can create
     derived types (pointers, arrays) on demand.
     """
     def __init__(self):
-        self.builtins = {
+        char_type = IntType(sizeof=1)
+        builtins = {
             'void': VoidType(),
             'int': IntType(sizeof=8),
-            'char': IntType(sizeof=1),
-            '_Bool': BoolType()
+            'char': char_type,
+            '_Bool': BoolType(),
+            # We create the following pointer type explicitly because LLVM
+            # doesn't allow void* and suggests using i8* instead.
+            'void*': PointerType(char_type),
         }
+        self._types = builtins
 
     def get_type(self, name):
-        return self.builtins[name]
+        return self._types[name]
 
     def cast_value(self, value, target_type, state, ast_node):
         """
