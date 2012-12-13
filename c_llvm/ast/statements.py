@@ -161,3 +161,22 @@ For.%(num)d.End:
             'num': state._get_next_number(),
             'statement_code': self.statement.generate_code(state),
         }
+
+
+class ReturnStatementNode(AstNode):
+    child_attributes = {
+        'expression': 0,
+    }
+
+    def generate_code(self, state):
+        return_type = state.return_type
+        if return_type.is_void:
+            if self.getChildCount():
+                self.log_error(state, "a void function can't return a "
+                               "value")
+            return "ret void"
+        expression_code = self.expression.generate_code(state)
+        expression_result = state.pop_result()
+        # TODO: cast
+        return "ret %s %s" % (expression_result.type.llvm_type,
+                              expression_result.value)

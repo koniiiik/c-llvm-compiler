@@ -12,6 +12,8 @@ int main()
     k -= j;
 
     i || j && k;
+
+    return 0;
 }
 
 void logical_exprs()

@@ -63,6 +63,7 @@ ret %(type)s %(register2)s
         # TODO: Add the function to the symbol table.
         # TODO: Verify that the function isn't already defined.
         type = state.types.get_type(str(self.return_type))
+        state.return_type = type
         if type.is_void:
             ret_statement = "ret void"
         else:
@@ -71,13 +72,15 @@ ret %(type)s %(register2)s
                 'register1': state.get_tmp_register(),
                 'register2': state.get_tmp_register(),
             }
-        return self.template % {
+        result = self.template % {
             'type': type.llvm_type,
             'name': str(self.name),
             'args': '', # TODO: use the actual args
             'contents': self.body.generate_code(state),
             'return': ret_statement,
         }
+        state.return_type = None
+        return result
 
     def toString(self):
         return "function definition"

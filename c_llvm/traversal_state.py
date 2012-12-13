@@ -82,6 +82,7 @@ class CompilerState(object):
         self.errors = []
         self.next_free_id = 0
         self.last_result = None
+        self.return_type = None
 
     def _get_next_number(self):
         result = self.next_free_id

@@ -136,7 +136,7 @@ jump_statement
     :	'goto' identifier ';'
     |	'continue' ';'
     |	'break' ';'
-    |	'return' expression? ';'
+    |	'return' expression? ';' -> ^('return'<ReturnStatementNode> expression?)
     ;
 
 // Expressions
