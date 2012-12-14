@@ -30,9 +30,13 @@ void statements()
         case 4: {
             switch (i) {
                 case 4: i+=4;
+                        break;
             }
         }
         default: i++;
         case 5: i--;
+    }
+    switch (5) {
+        case 3: ;
     }
 }

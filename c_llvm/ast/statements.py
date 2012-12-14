@@ -95,14 +95,16 @@ class WhileStatement(AstNode):
     # TODO We should enter_block here
     def generate_code(self, state):
         num = state._get_next_number()
-        state.enter_cycle("While%d.End" % (num), "While%d.Body" % (num))
+        state.break_labels.append("While%d.End" % num)
+        state.continue_labels.append("While%d.Body" % num)
         exp_code = self.exp.generate_code(state)
         exp_result = state.pop_result()
         exp_cast_code = exp_result.type.cast_to_bool(exp_result, None,
                                                      state, self)
         exp_cast_value = state.pop_result().value
         statement_code = self.statement.generate_code(state)
-        state.leave_cycle()
+        state.break_labels.pop()
+        state.continue_labels.pop()
         return self.template % {
             'exp_code': exp_code,
             'exp_cast_code': exp_cast_code,
@@ -170,7 +172,8 @@ For%(num)d.End:
     # Once for 'for' and then also for statement.
     def generate_code(self, state):
         num = state._get_next_number()
-        state.enter_cycle("For%d.End" % (num), "For%d.Inc" % (num))
+        state.break_labels.append("For%d.End" % num)
+        state.continue_labels.append("For%d.Inc" % num)
         e1_code = self.exp1.generate_code(state)
 
         # Pop the result explicitly to ensure we won't process a discarded
@@ -189,7 +192,8 @@ For%(num)d.End:
 
         e3_code = self.exp3.generate_code(state)
         statement_code = self.statement.generate_code(state)
-        state.leave_cycle()
+        state.break_labels.pop()
+        state.continue_labels.pop()
         return self.template % {
             'e1_code': e1_code,
             'e2_code': e2_code,
@@ -203,18 +207,18 @@ For%(num)d.End:
 
 class BreakStatementNode(AstNode):
     def generate_code(self, state):
-        if not state.cycles:
-            self.log_error(state, "'break' used outside of cycle")
+        if not state.break_labels:
+            self.log_error(state, "'break' used outside of loop and switch")
             return ""
-        return "br label %%%s" % (state.cycles[-1][0])
+        return "br label %%%s" % (state.break_labels[-1])
 
 
 class ContinueStatementNode(AstNode):
     def generate_code(self, state):
-        if not state.cycles:
-            self.log_error(state, "'break' used outside of cycle")
+        if not state.continue_labels:
+            self.log_error(state, "'continue' used outside of loop")
             return ""
-        return "br label %%%s" % (state.cycles[-1][1])
+        return "br label %%%s" % (state.continue_labels[-1])
 
 
 class ReturnStatementNode(AstNode):
@@ -246,31 +250,32 @@ class SwitchStatementNode(AstNode):
 %(exp_code)s
 switch i64 %(exp_value)s, label %%%(default_label)s [ %(labels_list)s ]
 %(statement_code)s
-%(default_label_code)s
+br label %%Switch%(num)d.End
+Switch%(num)d.End:
 """
 
     def generate_code(self, state):
         num = state._get_next_number()
+        state.break_labels.append("Switch%d.End" % num)
         state.enter_switch(num)
         exp_code = self.exp.generate_code(state)
         exp_value = state.pop_result().value
         default_label = "Switch%d.Default" % num
         labels_list = ""
         statement_code = self.statement.generate_code(state)
-        # if 'default' label was not found, create one at the end, llvm needs it
+        # if default-label was not found, use end-label, llvm needs something
         if not state.switches[-1][1]:
-            default_label_code = "br label %%%s\n%s:\n" % (default_label, default_label)
-        else:
-            default_label_code = ""
+            default_label = "Switch%d.End" % num
         for label in state.switches[-1][2]:
             labels_list += label
         state.leave_switch()
+        state.break_labels.pop()
         return self.template % {
             'exp_code': exp_code,
             'exp_value': exp_value,
             'default_label': default_label,
-            'default_label_code': default_label_code,
             'labels_list': labels_list,
+            'num': num,
             'statement_code': statement_code,
         }
 

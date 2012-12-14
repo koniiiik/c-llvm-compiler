@@ -83,7 +83,8 @@ class CompilerState(object):
         self.next_free_id = 0
         self.last_result = None
         self.return_type = None
-        self.cycles = []
+        self.break_labels = []
+        self.continue_labels = []
         self.switches = []
 
     def _get_next_number(self):
@@ -119,12 +120,6 @@ class CompilerState(object):
         result = self.last_result
         self.last_result = None
         return result
-
-    def enter_cycle(self, break_label, continue_label):
-        self.cycles.append((break_label, continue_label))
-
-    def leave_cycle(self):
-        self.cycles.pop()
 
     def enter_switch(self, number):
         # number of the current switch, 'default' found, list of 'case' labels
