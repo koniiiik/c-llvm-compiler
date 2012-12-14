@@ -176,9 +176,13 @@ For%(num)d.End:
 
         e2_code = self.exp2.generate_code(state)
         e2_result = state.pop_result()
-        e2_cast_code = e2_result.type.cast_to_bool(e2_result, None,
-                                                   state, self)
-        e2_cast_value = state.pop_result().value
+        if not e2_result:
+            e2_cast_code = ""
+            e2_cast_value = 1
+        else:
+            e2_cast_code = e2_result.type.cast_to_bool(e2_result, None,
+                                                       state, self)
+            e2_cast_value = state.pop_result().value
 
         e3_code = self.exp3.generate_code(state)
         statement_code = self.statement.generate_code(state)
