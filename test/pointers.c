@@ -4,6 +4,7 @@ void **b;
 int main()
 {
     int c;
-    *a;
+    a = &c;
+    // TODO: verify more behavior
     return 0;
 }

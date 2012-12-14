@@ -261,7 +261,19 @@ class DereferenceExpressionNode(ExpressionNode):
 
 
 class AddressExpressionNode(ExpressionNode):
-    pass
+    child_attributes = {
+        'expression': 0,
+    }
+
+    def generate_code(self, state):
+        expr_code = self.expression.generate_code(state)
+        expr_result = state.pop_result()
+        if not expr_result.pointer:
+            self.log_error(state, "address of a non-lvalue requested")
+            return ""
+        state.set_result(expr_result.pointer,
+                         state.types.get_pointer_type(expr_result.type))
+        return expr_code
 
 
 class UnaryArithmeticExpressionNode(ExpressionNode):
