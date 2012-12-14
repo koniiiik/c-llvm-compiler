@@ -3,6 +3,9 @@
 # antlrworks output
 output
 
+# LLVM assembly language files
+*.ll
+
 # C extensions
 *.so
 
