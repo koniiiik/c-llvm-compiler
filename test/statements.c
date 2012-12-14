@@ -15,8 +15,11 @@ void statements()
     while (1) ;
     do k; while(1);
     i = 10;
-    for (; ; i -= 1)
+    for (int i; i; i -= 1)
     {
+        int i;
+        // This should not be possible:
+        int i;
         if(1)
             continue;
         else
