@@ -12,8 +12,7 @@ tokens {
 }
 
 @header {
-from c_llvm.ast.base import EmptyNode
-from c_llvm.ast.base import TranslationUnitNode
+from c_llvm.ast.base import EmptyNode, OptionalNode, TranslationUnitNode
 from c_llvm.ast.expressions import *
 from c_llvm.ast.declarations import *
 from c_llvm.ast.statements import *
@@ -128,10 +127,14 @@ selection_statement
 iteration_statement
     :	'while' '(' e=expression ')' s=statement -> ^(DUMMY<WhileNode> $e $s)
     |	'do' s=statement 'while' '(' e=expression ')' ';' -> ^(DUMMY<DoWhileNode> $e $s)
-    |	'for' '(' e1=expression? ';' e2=expression? ';' e3=expression? ')' s=statement ->
+    |	'for' '(' e1=optional_expression ';' e2=optional_expression ';' e3=optional_expression ')' s=statement ->
             ^(DUMMY<ForNode> $e1 $e2 $e3 $s)
     |	'for' '(' d=declaration e2=expression? ';' e3=expression? ')' s=statement ->
             ^(DUMMY<ForNode> $d $e2 $e3 $s)
+    ;
+
+optional_expression
+    :	expression? -> ^(DUMMY<OptionalNode> expression?)
     ;
 
 jump_statement

@@ -170,10 +170,14 @@ For%(num)d.End:
         state.enter_cycle("For%d.End" % (num), "For%d.Inc" % (num))
         e1_code = self.exp1.generate_code(state)
 
+        # Pop the result explicitly to ensure we won't process a discarded
+        # result from a previous expression if e2 was omitted.
+        state.pop_result()
+
         e2_code = self.exp2.generate_code(state)
         e2_result = state.pop_result()
         e2_cast_code = e2_result.type.cast_to_bool(e2_result, None,
-                                                     state, self)
+                                                   state, self)
         e2_cast_value = state.pop_result().value
 
         e3_code = self.exp3.generate_code(state)

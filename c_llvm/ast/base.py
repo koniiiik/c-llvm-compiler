@@ -101,3 +101,12 @@ class TranslationUnitNode(AstNode):
 class EmptyNode(AstNode):
     def generate_code(self, state):
         return ""
+
+
+class OptionalNode(AstNode):
+    """
+    This special AST node class is useful for situations where a
+    nonterminal is optional but we need an AST node anyway.
+    """
+    def generate_code(self, state):
+        return "\n".join(self.process_children(state))
