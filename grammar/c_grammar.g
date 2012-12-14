@@ -143,7 +143,7 @@ iteration_statement
     |	'do' s=statement 'while' '(' e=expression ')' ';' -> ^(DUMMY<DoWhileNode> $e $s)
     |	'for' '(' e1=optional_expression ';' e2=optional_expression ';' e3=optional_expression ')' s=statement ->
             ^(DUMMY<ForNode> $e1 $e2 $e3 $s)
-    |	'for' '(' d=declaration e2=expression? ';' e3=expression? ')' s=statement ->
+    |	'for' '(' d=declaration e2=optional_expression ';' e3=optional_expression ')' s=statement ->
             ^(DUMMY<ForNode> $d $e2 $e3 $s)
     ;
 
