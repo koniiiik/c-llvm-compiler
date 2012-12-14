@@ -3,9 +3,9 @@ ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
 LLI ?= lli
 
-SAMPLES = test/trivial.ll test/pointers.ll test/simple.ll
+SAMPLES = trivial pointers statements simple
 
-run: $(SAMPLES)
+run: $(addprefix test/,$(addsuffix .ll,$(SAMPLES)))
 
 test/%.ll: test/%.c build
 	@echo
