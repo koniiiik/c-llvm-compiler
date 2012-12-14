@@ -1,0 +1,15 @@
+ * function declarations
+ * array type
+ * float types
+ * unsigned integers
+ * remaining integer types
+ * structs
+ * pointer to function
+ * automatic type casts in expressions
+ * function calls
+ * all NotImplementedErrors in expressions
+ * float, char and string literals
+ * initializers
+ * argument lists in function definitions
+ * variable argument lists
+ * abstract declarators
