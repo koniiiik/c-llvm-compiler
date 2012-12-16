@@ -3,7 +3,7 @@ ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
 LLI ?= lli
 
-SAMPLES = trivial pointers statements simple
+SAMPLES = trivial pointers statements functions simple
 
 run: $(addprefix test/,$(addsuffix .ll,$(SAMPLES)))
 

@@ -24,23 +24,34 @@ translation_unit
     ;
 
 external_declaration
+    options {
+        backtrack = true;
+    }
     :	function_definition
     |	declaration
     ;
 
 function_definition // TODO
-    :	declaration_specifiers identifier '(' parameter_list (',' '...')? ')' compound_statement
+    :	declaration_specifiers identifier '(' parameter_list ')' compound_statement
         -> ^(DUMMY<FunctionDefinitionNode> declaration_specifiers
              identifier parameter_list? compound_statement)
     ;
 
-parameter_list // TODO
-    :	parameter_declaration (',' parameter_declaration)*
-    |
+parameter_list
+    :	parameter_declaration (',' parameter_declaration)* (',' ellipsis)?
+        -> ^(DUMMY<ParameterListNode> parameter_declaration* ellipsis?)
+    |   -> ^(DUMMY<ParameterListNode>)
+    ;
+
+// This rule is here only because of the messed-up distinction between a
+// parser and a lexer in antlr.
+ellipsis
+    :	'...'
     ;
 
 parameter_declaration // TODO
     :	declaration_specifiers declarator
+        -> ^(DUMMY<ParameterDeclarationNode> declaration_specifiers declarator)
     ;
 
 declaration
@@ -58,10 +69,13 @@ declarator
     ;
 
 direct_declarator
-    :	identifier -> ^(DUMMY<IdentifierDeclaratorNode> identifier)
-    |	'('! declarator ')'!
-    // TODO: arrays
-    // TODO: functions
+    :	(   identifier -> ^(DUMMY<IdentifierDeclaratorNode> identifier)
+        |   '(' declarator ')' -> declarator
+        )
+        (   '(' parameter_list ')'
+            -> ^(DUMMY<FunctionDeclaratorNode> $direct_declarator parameter_list)
+        // TODO: arrays
+        )*
     ;
 
 pointer

@@ -35,6 +35,14 @@ class BaseType(object):
     def is_scalar(self):
         return self.is_arithmetic or self.is_pointer
 
+    @property
+    def is_array(self):
+        return self.internal_type == 'array'
+
+    @property
+    def is_function(self):
+        return self.internal_type == 'function'
+
     def cast_to_void(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -104,6 +112,23 @@ class PointerType(BaseType):
         return "%s*" % (self.target_type.name,)
 
 
+class FunctionType(BaseType):
+    internal_type = 'function'
+
+    def __init__(self, name, return_type, arg_types, variable_args):
+        self.name = name
+        self.return_type = return_type
+        self.arg_types = arg_types
+        self.variable_args = variable_args
+
+    @property
+    def arg_types_str(self):
+        types = [t.llvm_type for t in self.arg_types]
+        if self.variable_args:
+            types.append('...')
+        return "(%s)" % (', '.join(types),)
+
+
 class TypeLibrary(object):
     """
     Library of known types. Prepopulated with builtin types, can create
@@ -136,6 +161,20 @@ class TypeLibrary(object):
             ptr_type = PointerType(type)
             self._types[name] = ptr_type
             return ptr_type
+
+    def get_function_type(self, return_type, arg_types, variable_args):
+        name = "%(return)s(%(args)s%(varargs)s)" % {
+            'return': return_type.name,
+            'args': ','.join(type.name for type in arg_types),
+            'varargs': variable_args and ',...' or '',
+        }
+        try:
+            return self._types[name]
+        except KeyError:
+            func_type = FunctionType(name, return_type, arg_types,
+                                     variable_args)
+            self._types[name] = func_type
+            return func_type
 
     def cast_value(self, value, target_type, state, ast_node):
         """
