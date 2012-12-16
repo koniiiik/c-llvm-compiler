@@ -305,6 +305,61 @@ class LogicalNegationExpressionNode(ExpressionNode):
     pass
 
 
+class FunctionCallNode(ExpressionNode):
+    child_attributes = {
+        'function': 0,
+        'arguments': 1,
+    }
+    template = """
+%(arg_eval_codes)s
+%(arg_cast_codes)s
+%(register)s = call %(type)s* %(name)s(%(arg_values)s)
+"""
+
+    def generate_code(self, state):
+        function_code = self.function.generate_code(state)
+        function = state.pop_result()
+
+        if not function.type.is_function:
+            self.log_error(state, "attempting to call a non-function")
+            return ""
+
+        arg_code, arg_results = [], []
+        for argument in self.arguments.children:
+            arg_code.append(argument.generate_code(state))
+            arg_results.append(state.pop_result())
+
+        if len(function.type.arg_types) > len(arg_results):
+            self.log_error(state, "not enough arguments given")
+            return ""
+        elif (len(function.type.arg_types) < len(arg_results) and
+                not function.type.variable_args):
+            self.log_error(state, "too many arguments given")
+            return ""
+
+        for expected_type, result in zip(function.type.arg_types,
+                                         arg_results):
+            # TODO: perform casts
+            if result.type is not expected_type:
+                raise NotImplementedError
+
+        register = state.get_tmp_register()
+
+        return self.template % {
+            'arg_eval_codes': '\n'.join(arg_code),
+            'arg_cast_codes': '',
+            'register': register,
+            'type': function.type.llvm_type,
+            'name': function.value,
+            'arg_values': ', '.join(
+                '%(type)s %(val)s' % {
+                    'type': result.type.llvm_type,
+                    'val': result.value,
+                } for result in arg_results
+            ),
+        }
+
+
 class VariableExpressionNode(ExpressionNode):
     child_attributes = {
         'name': 0,
@@ -316,6 +371,12 @@ class VariableExpressionNode(ExpressionNode):
         except KeyError:
             self.log_error(state, "unknown variable: %s" % (str(self.name),))
             return ""
+
+        if var.type.is_function:
+            state.set_result(value=None, type=var.type,
+                             pointer=var.register)
+            return ""
+
         register = state.get_tmp_register()
         state.set_result(value=register, type=var.type,
                          pointer=var.register)

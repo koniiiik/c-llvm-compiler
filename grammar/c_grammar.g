@@ -260,6 +260,7 @@ postfix_expression
     :	primary_expression
         (   '[' expression ']'
         |   '(' (assignment_expression (',' assignment_expression)*)? ')'
+            -> ^(DUMMY<FunctionCallNode> primary_expression ^(DUMMY assignment_expression*))
         |   '.' identifier
         |   '->' identifier
         |   '++'
