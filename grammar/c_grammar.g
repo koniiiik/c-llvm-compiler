@@ -178,10 +178,8 @@ expression
     ;
 
 assignment_expression
-    options {
-        backtrack = true;
-    }
-    :	lvalue=unary_expression op=assignment_operator rvalue=assignment_expression
+    :	(unary_expression assignment_operator)
+        => lvalue=unary_expression op=assignment_operator rvalue=assignment_expression
         -> ^(DUMMY<AssignmentExpressionNode> $op $lvalue $rvalue)
     |	conditional_expression
     ;
