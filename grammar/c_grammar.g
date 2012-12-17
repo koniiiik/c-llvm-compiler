@@ -299,7 +299,7 @@ constant
     ;
 
 string_literal
-    :	STRING
+    :	STRING<StringLiteralNode>^
     ;
 
 assignment_operator
@@ -417,9 +417,10 @@ CHAR
 
 fragment
 ESC_SEQ
-    :	'\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
-    |	UNICODE_ESC
+    :	'\\' ('a'|'b'|'f'|'n'|'r'|'t'|'v'|'\"'|'\''|'\\'|'?')
+//    |	UNICODE_ESC Don't really want to implement this.
     |	OCTAL_ESC
+    |	HEX_ESC
     ;
 
 fragment
@@ -427,6 +428,11 @@ OCTAL_ESC
     :	'\\' ('0'..'3') ('0'..'7') ('0'..'7')
     |	'\\' ('0'..'7') ('0'..'7')
     |	'\\' ('0'..'7')
+    ;
+
+fragment
+HEX_ESC
+    :	'\\' 'x' HEX_DIGIT+
     ;
 
 fragment

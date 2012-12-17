@@ -86,6 +86,7 @@ class CompilerState(object):
         self.break_labels = []
         self.continue_labels = []
         self.switches = []
+        self.global_declarations = []
 
     def _get_next_number(self):
         result = self.next_free_id
@@ -130,4 +131,3 @@ class CompilerState(object):
 
     def leave_switch(self):
         self.switches.pop()
-

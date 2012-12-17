@@ -75,7 +75,7 @@ class AstNode(CommonTree):
 
     def toString(self):
         parent = super(AstNode, self).toString()
-        if parent is None:
+        if not isinstance(parent, (str, unicode)):
             return self.__class__.__name__
         return parent
 
@@ -104,7 +104,10 @@ class TranslationUnitNode(AstNode):
         if state.errors:
             raise CompilationError("\n".join(state.errors))
 
-        return "\n".join(children)
+        children_code = "\n".join(children)
+        global_code = "\n".join(state.global_declarations)
+
+        return "%s\n\n%s" % (global_code, children_code)
 
 
 class EmptyNode(AstNode):

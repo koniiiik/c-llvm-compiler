@@ -478,6 +478,98 @@ class CharConstantNode(ExpressionNode):
     pass
 
 
+char_escape_seqs = {
+    "'": ord("'"),
+    '"': ord('"'),
+    '\\': ord('\\'),
+    '?': ord('?'),
+    'a': ord('\a'),
+    'b': ord('\b'),
+    'f': ord('\f'),
+    'n': ord('\n'),
+    'r': ord('\r'),
+    't': ord('\t'),
+    'v': ord('\v'),
+}
+
+
+def unescape_octal_char_constant(char):
+    return int(char, base=8) % 256
+
+
+def unescape_hex_char_constant(char):
+    return int(char, base=16) % 256
+
+
+class StringLiteralNode(ExpressionNode):
+    child_attributes = {
+        'value': 0,
+    }
+    template = """
+%(local_register)s = getelementptr %(array_type)s* %(global_register)s, i64 0, i64 0
+"""
+    declaration_template = """
+%(register)s = global %(type)s c"%(content)s"
+"""
+
+    def get_length_content(self, state):
+        res = []
+        it = iter(str(self)[1:]) # We keep the ending quote mark as sentinel.
+        buf = next(it)
+        try:
+            while True:
+                if buf == '\\':
+                    buf = next(it)
+                    if buf == 'x':
+                        hex_num = []
+                        buf = next(it)
+                        while ('0' <= buf <= '9'
+                                or 'a' <= buf <= 'f'
+                                or 'A' <= buf <= 'F'):
+                            hex_num.append(buf)
+                            buf = next(it)
+                        res.append(unescape_hex_char_constant(''.join(hex_num)))
+                    elif '0' <= buf <= '7':
+                        oct_num = []
+                        while '0' <= buf <= '7':
+                            oct_num.append(buf)
+                            buf = next(it)
+                        res.append(unescape_octal_char_constant(''.join(oct_num)))
+                    else:
+                        res.append(char_escape_seqs[buf])
+                        buf = next(it)
+                else:
+                    res.append(ord(buf))
+                    buf = next(it)
+        except StopIteration as e:
+            pass
+        # Replace the ending sentinel with the zero terminator.
+        res[-1] = 0
+        length = len(res)
+        res = ''.join('\\%02X' % (byte,) for byte in res)
+        return length, res
+
+    def generate_code(self, state):
+        register = "@string.%d" % (state._get_next_number(),)
+        length, content = self.get_length_content(state)
+        char_type = state.types.get_type('char')
+        array_type = state.types.get_array_type(char_type, length)
+        ptr_type = state.types.get_pointer_type(char_type)
+        result_register = state.get_tmp_register()
+        state.set_result(result_register, ptr_type)
+        declaration = self.declaration_template % {
+            'register': register,
+            'type': array_type.llvm_type,
+            'content': content,
+        }
+        state.global_declarations.append(declaration)
+        return self.template % {
+            'local_register': result_register,
+            'array_type': array_type.llvm_type,
+            'global_register': register,
+        }
+
+
 class AssignmentExpressionNode(ExpressionNode):
     child_attributes = {
         'op': 0,
