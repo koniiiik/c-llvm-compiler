@@ -128,6 +128,27 @@ class FunctionType(BaseType):
             types.append('...')
         return "(%s)" % (', '.join(types),)
 
+    @property
+    def llvm_type(self):
+        return "%s %s" % (self.return_type.llvm_type, self.arg_types_str)
+
+
+class ArrayType(BaseType):
+    internal_type = 'array'
+
+    def __init__(self, name, target_type, length):
+        self.name = name
+        self.target_type = target_type
+        self.length = length
+
+    @property
+    def llvm_type(self):
+        return "[%d x %s]" % (self.length, self.target_type.llvm_type)
+
+    @property
+    def sizeof(self):
+        return self.length * self.target_type.sizeof
+
 
 class TypeLibrary(object):
     """
@@ -175,6 +196,15 @@ class TypeLibrary(object):
                                      variable_args)
             self._types[name] = func_type
             return func_type
+
+    def get_array_type(self, target_type, length):
+        name = "%s[%d]" % (target_type.name, length)
+        try:
+            return self._types[name]
+        except KeyError:
+            array_type = ArrayType(name, target_type, length)
+            self._types[name] = array_type
+            return array_type
 
     def cast_value(self, value, target_type, state, ast_node):
         """

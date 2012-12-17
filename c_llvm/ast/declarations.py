@@ -191,3 +191,37 @@ class ParameterDeclarationNode(AstNode):
 
     def get_identifier(self):
         return self.declarator.get_identifier()
+
+
+class ArrayDeclaratorNode(DeclaratorNode):
+    child_attributes = {
+        'inner_declarator': 0,
+        'length': 1,
+    }
+
+    def get_type(self, state):
+        if self.getChildCount() != 2:
+            self.log_error(state, "incomplete array types are not "
+                           "supported (you have to provide a length)")
+            length = 0
+        elif str(self.length) == '*':
+            self.log_error(state, "variable-length arrays are not "
+                           "supported")
+            length = 0
+        else:
+            self.length.generate_code(state)
+            length_result = state.pop_result()
+            if (length_result is not None and length_result.is_constant
+                    and length_result.type.is_integer):
+                length = length_result.value
+            else:
+                self.log_error(state, "invalid array dimension (constant "
+                               "integer expression required)")
+                length = 0
+
+        target_type = self.inner_declarator.get_type(state)
+
+        if target_type.is_function:
+            self.log_error(state, "can't declare an array of functions")
+
+        return state.types.get_array_type(target_type, length)

@@ -76,7 +76,14 @@ direct_declarator
         )
         (   '(' parameter_list ')'
             -> ^(DUMMY<FunctionDeclaratorNode> $direct_declarator parameter_list)
-        // TODO: arrays
+        |   '[' TYPE_QUALIFIER* a=assignment_expression? ']'
+            -> ^(DUMMY<ArrayDeclaratorNode> $direct_declarator $a?)
+        |   '[' 'static' TYPE_QUALIFIER* a=assignment_expression ']'
+            -> ^(DUMMY<ArrayDeclaratorNode> $direct_declarator $a)
+        |   '[' TYPE_QUALIFIER+ 'static' a=assignment_expression ']'
+            -> ^(DUMMY<ArrayDeclaratorNode> $direct_declarator $a)
+        |   '[' TYPE_QUALIFIER* '*' ']'
+            -> ^(DUMMY<ArrayDeclaratorNode> $direct_declarator '*')
         )*
     ;
 
