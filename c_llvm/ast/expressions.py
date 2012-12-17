@@ -21,8 +21,20 @@ class UnaryExpressionNode(ExpressionNode):
     }
 
 
-class ExpressionListNode(ExpressionNode):
-    pass
+class CommaOperatorNode(BinaryExpressionNode):
+    template = """
+%(left_code)s
+%(right_code)s
+"""
+
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        right_code = self.right.generate_code(state)
+        # right's result expression should stay in the state I hope
+        return self.template % {
+                'left_code': left_code,
+                'right_code': right_code,
+            }
 
 
 class ConditionalExpressionNode(ExpressionNode):

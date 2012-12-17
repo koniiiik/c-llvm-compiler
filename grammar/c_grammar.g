@@ -174,7 +174,7 @@ constant_expression
     ;
 
 expression
-    :	assignment_expression (','<ExpressionListNode>^ assignment_expression)*
+    :	assignment_expression (','<CommaOperatorNode>^ assignment_expression)*
     ;
 
 assignment_expression
