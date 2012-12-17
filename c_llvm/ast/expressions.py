@@ -466,9 +466,7 @@ class FloatConstantNode(ExpressionNode):
     def generate_code(self, state):
         # TODO: handle suffixes
         upper = str(self).upper()
-        if upper[0]== '.':
-            upper = "0" + upper
-        while not upper.isdigit():
+        while upper[-1] in ('L', 'F'):
             upper = upper[:-1]
         state.set_result(value=float(upper),
                          type=state.types.get_type('float'),
