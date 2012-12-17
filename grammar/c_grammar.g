@@ -270,6 +270,7 @@ postfix_expression
             -> ^(DUMMY<DereferenceExpressionNode>
                  ^(DUMMY<AdditionExpressionNode> $postfix_expression $e))
         |   '(' (assignment_expression (',' assignment_expression)*)? ')'
+            -> ^(DUMMY<FunctionCallNode> $postfix_expression ^(DUMMY assignment_expression*))
         |   '.' identifier
         |   '->' identifier
         |   '++'
