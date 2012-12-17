@@ -97,6 +97,7 @@ declaration_specifiers // TODO
 
 type_specifier // TODO
     :	'int'
+    |	'char'
     |	'void'
     ;
 
