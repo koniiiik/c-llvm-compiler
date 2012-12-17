@@ -137,7 +137,12 @@ class AdditionExpressionNode(BinaryExpressionNode):
 
         if (left_result.type.is_pointer and
                 right_result.type.is_integer):
-            raise NotImplementedError
+            register = state.get_tmp_register()
+            add = "%s = getelementptr %s %s, %s %s" % (
+                register, left_result.type.llvm_type, left_result.value,
+                right_result.type.llvm_type, right_result.value
+            )
+            state.set_result(register, left_result.type)
         elif (left_result.type.is_arithmetic and
                 right_result.type.is_arithmetic):
             # TODO: casts
@@ -254,17 +259,30 @@ class DereferenceExpressionNode(ExpressionNode):
 %(expr_code)s
 %(register)s = load %(type)s %(pointer)s
 """
+    template_array = """
+%(expr_code)s
+%(register)s = getelementptr %(type)s %(pointer)s, i64 0, i64 0
+"""
 
     def generate_code(self, state):
         expr_code = self.expression.generate_code(state)
         expr_result = state.pop_result()
-        if not expr_result.type.is_pointer:
+        expr_type = expr_result.type
+        if not expr_type.is_pointer:
             self.log_error(state, "dereferencing a non-pointer value")
             return ""
         register = state.get_tmp_register()
-        state.set_result(register, expr_result.type.target_type,
-                         pointer=expr_result.value)
-        return self.template % {
+
+        if expr_type.target_type.is_array:
+            template = self.template_array
+            result_type = state.types.get_pointer_type(expr_type.target_type.target_type)
+            state.set_result(register, result_type)
+        else:
+            template = self.template
+            state.set_result(register, expr_result.type.target_type,
+                             pointer=expr_result.value)
+
+        return template % {
             'expr_code': expr_code,
             'register': register,
             'type': expr_result.type.llvm_type,
@@ -390,6 +408,17 @@ class VariableExpressionNode(ExpressionNode):
             return ""
 
         register = state.get_tmp_register()
+
+        if var.type.is_array:
+            # We want to return a pointer to the first element. This is
+            # not an lvalue, however, the target is (unless it is an array
+            # as well).
+            ptr_type = state.types.get_pointer_type(var.type.target_type)
+            state.set_result(value=register, type=ptr_type)
+            return "%s = getelementptr %s* %s, i64 0, i64 0" % (
+                register, var.type.llvm_type, var.register
+            )
+
         state.set_result(value=register, type=var.type,
                          pointer=var.register)
         return "%s = load %s* %s" % (register, var.type.llvm_type,

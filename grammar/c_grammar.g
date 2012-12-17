@@ -267,8 +267,10 @@ sizeof_expression
     ;
 
 postfix_expression
-    :	primary_expression
-        (   '[' expression ']'
+    :	(primary_expression -> primary_expression)
+        (   '[' e=expression ']'
+            -> ^(DUMMY<DereferenceExpressionNode>
+                 ^(DUMMY<AdditionExpressionNode> $postfix_expression $e))
         |   '(' (assignment_expression (',' assignment_expression)*)? ')'
         |   '.' identifier
         |   '->' identifier
