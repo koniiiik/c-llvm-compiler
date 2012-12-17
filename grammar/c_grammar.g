@@ -292,9 +292,9 @@ identifier
     ;
 
 constant
-    :	INTEGER -> ^(DUMMY<IntegerConstantNode> INTEGER)
-    |	FLOAT
-    |	CHAR
+    :	INTEGER<IntegerConstantNode>^
+    |	FLOAT<FloatConstantNode>^
+    |	CHAR<CharConstantNode>^
     ;
 
 string_literal

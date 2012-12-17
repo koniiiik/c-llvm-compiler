@@ -1,4 +1,5 @@
 from c_llvm.ast.base import AstNode
+from c_llvm.exceptions import CompilationError
 
 
 class ExpressionNode(AstNode):
@@ -13,6 +14,25 @@ class BinaryExpressionNode(ExpressionNode):
         'left': 0,
         'right': 1,
     }
+
+    @classmethod
+    def cast_if_necessary(self, left_result, right_result, state):
+        # assuming for both type.is_arithmetic is true (int or float)
+        if right_result.type.is_integer:
+            left_result, right_result = right_result, left_result
+
+        if (left_result.type.is_integer and
+                right_result.type.is_float):
+            code = left_result.type.cast_to_float(left_result, None, state, self)
+            left_result = state.pop_result()
+            return code, left_result, right_result
+        return "", left_result, right_result
+
+    @classmethod
+    def common_type(self, left_type, right_type):
+        if left_type.priority > right_type.priority:
+            return left_type
+        return right_type
 
 
 class UnaryExpressionNode(ExpressionNode):
@@ -145,8 +165,11 @@ class AdditionExpressionNode(BinaryExpressionNode):
             state.set_result(register, left_result.type)
         elif (left_result.type.is_arithmetic and
                 right_result.type.is_arithmetic):
-            # TODO: casts
-            # TODO: floats
+            add, left_result, right_result = cls.cast_if_necessary(
+                    left_result, right_result, state)
+            if add != "":
+                add += "\n"
+
             register = state.get_tmp_register()
             add = "%s = add %s %s, %s" % (
                 register, left_result.type.llvm_type, left_result.value,
@@ -167,9 +190,8 @@ class AdditionExpressionNode(BinaryExpressionNode):
             return ""
 
         if right_result.is_constant and left_result.is_constant:
-            # TODO: verify types and cast
             state.set_result(right_result.value + left_result.value,
-                             left_result.type, True)
+                    self.common_type(left_result.type, right_result.type), True)
             return ""
 
         try:
@@ -224,9 +246,8 @@ class SubtractionExpressionNode(BinaryExpressionNode):
             return ""
 
         if right_result.is_constant and left_result.is_constant:
-            # TODO: verify types and cast
             state.set_result(left_result.value - right_result.value,
-                             left_result.type, True)
+                    self.common_type(left_result.type, right_result.type), True)
             return ""
 
         try:
@@ -426,14 +447,10 @@ class VariableExpressionNode(ExpressionNode):
 
 
 class IntegerConstantNode(ExpressionNode):
-    child_attributes = {
-        'value': 0,
-    }
-
     def generate_code(self, state):
         # TODO: handle suffixes
         # TODO: hex and oct representations
-        upper = str(self.value).upper()
+        upper = str(self).upper()
         is_unsigned = 'U' in upper
         while not upper.isdigit():
             upper = upper[:-1]
@@ -443,6 +460,24 @@ class IntegerConstantNode(ExpressionNode):
                          type=state.types.get_type('int'),
                          is_constant=True)
         return ""
+
+
+class FloatConstantNode(ExpressionNode):
+    def generate_code(self, state):
+        # TODO: handle suffixes
+        upper = str(self).upper()
+        if upper[0]== '.':
+            upper = "0" + upper
+        while not upper.isdigit():
+            upper = upper[:-1]
+        state.set_result(value=float(upper),
+                         type=state.types.get_type('float'),
+                         is_constant=True)
+        return ""
+
+
+class CharConstantNode(ExpressionNode):
+    pass
 
 
 class AssignmentExpressionNode(ExpressionNode):
@@ -491,8 +526,17 @@ class AssignmentExpressionNode(ExpressionNode):
             rvalue_result = state.pop_result()
         else:
             operation_code = ""
-        # TODO: check types and cast
-        assignment = "store %s %s, %s* %s" % (
+
+        # TODO: check types and cast for pointers
+        assignment = ""
+        if not lvalue_result.type.is_pointer:
+            assignment = state.types.cast_value(rvalue_result, lvalue_result, state, self)
+            rvalue_result = state.pop_result()
+
+        if assignment != "":
+            assignment += "\n"
+
+        assignment += "store %s %s, %s* %s" % (
             rvalue_result.type.llvm_type, rvalue_result.value,
             lvalue_result.type.llvm_type, lvalue_result.pointer,
         )

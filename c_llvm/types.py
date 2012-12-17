@@ -7,6 +7,7 @@ class BaseType(object):
     # One of void, int, bool, pointer, function.
     internal_type = None
     default_value = 'undef'
+    priority = 0
 
     def __init__(self, name):
         self.name = name
@@ -69,6 +70,7 @@ class IntType(BaseType):
     sizeof = 8
     internal_type = 'int'
     default_value = 0
+    priority = 2
 
     def __init__(self, sizeof, *args, **kwargs):
         self.sizeof = sizeof
@@ -78,6 +80,22 @@ class IntType(BaseType):
     def llvm_type(self):
         return 'i%d' % (self.sizeof * 8,)
 
+    def cast_to_int(self, value, target_type, state, ast_node):
+        state.push_result(value)
+        return ""
+
+    def cast_to_float(self, value, target_type, state, ast_node):
+        target_type = state.types.get_type('float')
+        template = "%(register)s = sitofp %(type)s %(value)s to $(target_type)s"
+        register = state.get_tmp_register()
+        state.set_result(register, target_type, False)
+        return template % {
+            'register': register,
+            'type': self.llvm_type,
+            'value': value.value,
+            'target_type': target_type.llvm_type,
+        }
+
     def cast_to_bool(self, value, target_type, state, ast_node):
         template = "%(register)s = icmp ne %(type)s %(value)s, 0"
         register = state.get_tmp_register()
@@ -86,6 +104,26 @@ class IntType(BaseType):
             'register': register,
             'type': self.llvm_type,
             'value': value.value,
+        }
+
+
+class FloatType(BaseType):
+    sizeof = 8
+    internal_type = 'float'
+    llvm_type = 'double'
+    default_value = 0.0
+    priority = 4
+
+    def cast_to_int(self, value, target_type, state, ast_node):
+        target_type = state.types.get_type('int')
+        template = "%(register)s = fptosi %(type)s %(value)s to %(target_type)s"
+        register = state.get_tmp_register()
+        state.set_result(register, target_type, False)
+        return template % {
+            'register': register,
+            'type': self.llvm_type,
+            'value': value.value,
+            'target_type': target_type.llvm_type,
         }
 
 
@@ -161,6 +199,7 @@ class TypeLibrary(object):
             'void': VoidType(name='void'),
             'int': IntType(sizeof=8, name='int'),
             'char': char_type,
+            'float': FloatType(name='float'),
             '_Bool': BoolType(name='_Bool'),
             # We create the following pointer type explicitly because LLVM
             # doesn't allow void* and suggests using i8* instead.
@@ -212,5 +251,5 @@ class TypeLibrary(object):
         the state accordingly.
         """
         cast_method = getattr(value.type,
-                              'cast_to_%s' % (target_type.internal_name,))
+                              'cast_to_%s' % (target_type.type.name,))
         return cast_method(value, target_type, state, ast_node)
