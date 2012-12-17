@@ -73,6 +73,15 @@ class AstNode(CommonTree):
         """
         raise NotImplementedError
 
+    def toString(self):
+        parent = super(AstNode, self).toString()
+        if parent is None:
+            return self.__class__.__name__
+        return parent
+
+    def __str__(self):
+        return self.toString()
+
 
 class AstTreeAdaptor(CommonTreeAdaptor):
     """
