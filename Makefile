@@ -7,6 +7,9 @@ SAMPLES = trivial pointers statements functions arrays simple
 
 run: $(addprefix test/,$(addsuffix .ll,$(SAMPLES)))
 
+$(foreach sample,$(SAMPLES),$(eval \
+$(sample): test/$(sample).ll))
+
 test/%.ll: test/%.c build
 	@echo
 	@echo ===============================================
