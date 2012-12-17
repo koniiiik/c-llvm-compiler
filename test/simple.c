@@ -7,6 +7,6 @@ int main() {
     g = (int)4.7;
 }
 int foo, bar;
- int int   main()    {}
+ int   main()    {}
 int foo;
 int main()    {}
