@@ -86,7 +86,7 @@ class IntType(BaseType):
 
     def cast_to_float(self, value, target_type, state, ast_node):
         target_type = state.types.get_type('float')
-        template = "%(register)s = sitofp %(type)s %(value)s to $(target_type)s"
+        template = "%(register)s = sitofp %(type)s %(value)s to %(target_type)s"
         register = state.get_tmp_register()
         state.set_result(register, target_type, False)
         return template % {
@@ -125,6 +125,10 @@ class FloatType(BaseType):
             'value': value.value,
             'target_type': target_type.llvm_type,
         }
+
+    def cast_to_float(self, value, target_type, state, ast_node):
+        state.push_result(value)
+        return ""
 
 
 class BoolType(BaseType):
@@ -200,6 +204,7 @@ class TypeLibrary(object):
             'int': IntType(sizeof=8, name='int'),
             'char': char_type,
             'float': FloatType(name='float'),
+            'double': FloatType(name='double'),
             '_Bool': BoolType(name='_Bool'),
             # We create the following pointer type explicitly because LLVM
             # doesn't allow void* and suggests using i8* instead.
@@ -251,5 +256,5 @@ class TypeLibrary(object):
         the state accordingly.
         """
         cast_method = getattr(value.type,
-                              'cast_to_%s' % (target_type.type.name,))
+                              'cast_to_%s' % (target_type.type.internal_type,))
         return cast_method(value, target_type, state, ast_node)

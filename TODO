@@ -1,12 +1,10 @@
  * type adjustments in function declarations
- * float types
  * unsigned integers
  * remaining integer types
  * structs
  * pointer to function
  * automatic type casts in expressions
  * all NotImplementedErrors in expressions
- * float, char literals
  * initializers
  * argument lists in function definitions
  * abstract declarators

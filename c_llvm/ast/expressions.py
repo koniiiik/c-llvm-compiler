@@ -169,11 +169,13 @@ class AdditionExpressionNode(BinaryExpressionNode):
                     left_result, right_result, state)
             if add != "":
                 add += "\n"
-
+            op = "add"
+            if left_result.type.is_float:
+                op = "fadd"
             register = state.get_tmp_register()
-            add = "%s = add %s %s, %s" % (
-                register, left_result.type.llvm_type, left_result.value,
-                right_result.value
+            add += "%s = %s %s %s, %s" % (
+                register, op, left_result.type.llvm_type,
+                left_result.value, right_result.value
             )
             state.set_result(register, left_result.type)
         else:
@@ -216,6 +218,9 @@ class SubtractionExpressionNode(BinaryExpressionNode):
 
     @classmethod
     def perform_operation(cls, instance, state, left_result, right_result):
+        if right_result.type.is_pointer:
+            left_result, right_result = right_result, left_result
+
         if (left_result.type.is_pointer and
                 right_result.type.is_integer):
             raise NotImplementedError
@@ -224,18 +229,23 @@ class SubtractionExpressionNode(BinaryExpressionNode):
             raise NotImplementedError
         elif (left_result.type.is_arithmetic and
                 right_result.type.is_arithmetic):
-            # TODO: casts
-            # TODO: floats
+            subtract, left_result, right_result = cls.cast_if_necessary(
+                    left_result, right_result, state)
+            if subtract != "":
+                subtract += "\n"
+            op = "sub"
+            if left_result.type.is_float:
+                op = "fsub"
             register = state.get_tmp_register()
-            add = "%s = sub %s %s, %s" % (
-                register, left_result.type.llvm_type, left_result.value,
-                right_result.value
+            subtract += "%s = %s %s %s, %s" % (
+                register, op, left_result.type.llvm_type,
+                left_result.value, right_result.value
             )
             state.set_result(register, left_result.type)
         else:
             instance.log_error(state, "incompatible types")
             raise CompilationError()
-        return add
+        return subtract
 
     def generate_code(self, state):
         left_code = self.left.generate_code(state)
@@ -412,15 +422,11 @@ class FunctionCallNode(ExpressionNode):
 
 
 class VariableExpressionNode(ExpressionNode):
-    child_attributes = {
-        'name': 0,
-    }
-
     def generate_code(self, state):
         try:
-            var = state.symbols[str(self.name)]
+            var = state.symbols[str(self)]
         except KeyError:
-            self.log_error(state, "unknown variable: %s" % (str(self.name),))
+            self.log_error(state, "unknown variable: %s" % (str(self),))
             return ""
 
         if var.type.is_function:
@@ -464,7 +470,6 @@ class IntegerConstantNode(ExpressionNode):
 
 class FloatConstantNode(ExpressionNode):
     def generate_code(self, state):
-        # TODO: handle suffixes
         upper = str(self).upper()
         while upper[-1] in ('L', 'F'):
             upper = upper[:-1]
@@ -475,7 +480,22 @@ class FloatConstantNode(ExpressionNode):
 
 
 class CharConstantNode(ExpressionNode):
-    pass
+    def generate_code(self, state):
+        char = str(self)
+        char = char[:-1]
+        if char[1] == '\\':
+            if char[2] == 'x':
+                value = int(char[3:],base=16)
+            elif char[2:].isdigit():
+                value = int(char[2:],base=8)
+            else:
+                value = ord(char[1:2])
+        else:
+            value = ord(char[1])
+        state.set_result(value,
+                         type=state.types.get_type('char'),
+                         is_constant=True)
+        return ""
 
 
 char_escape_seqs = {
@@ -502,9 +522,6 @@ def unescape_hex_char_constant(char):
 
 
 class StringLiteralNode(ExpressionNode):
-    child_attributes = {
-        'value': 0,
-    }
     template = """
 %(local_register)s = getelementptr %(array_type)s* %(global_register)s, i64 0, i64 0
 """

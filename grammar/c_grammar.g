@@ -98,6 +98,8 @@ declaration_specifiers // TODO
 type_specifier // TODO
     :	'int'
     |	'char'
+    |   'float'
+    |   'double'
     |	'void'
     ;
 
@@ -280,7 +282,7 @@ postfix_expression
     ;
 
 primary_expression
-    :	identifier -> ^(DUMMY<VariableExpressionNode> identifier)
+    :	identifier
     |	constant
     |	string_literal
     |	'('! expression ')'!
@@ -289,7 +291,7 @@ primary_expression
 // Parser -> Lexer mapping
 
 identifier
-    :	ID
+    :	ID<VariableExpressionNode>^
     ;
 
 constant
