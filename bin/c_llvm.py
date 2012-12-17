@@ -27,6 +27,7 @@ parser.setTreeAdaptor(AstTreeAdaptor())
 r = parser.translation_unit()
 
 root = r.tree
+print "tree = " + root.toStringTree()
 output_file = os.path.splitext(sys.argv[1])[0] + '.ll'
 with open(output_file, 'w') as f:
     f.write(root.generate_code())
