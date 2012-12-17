@@ -23,6 +23,8 @@ translation_unit
         -> ^(DUMMY<TranslationUnitNode> external_declaration+)
     ;
 
+// Declarations and definitions
+
 external_declaration
     options {
         backtrack = true;
@@ -165,23 +167,24 @@ constant_expression
     ;
 
 expression
-    :	(e=assignment_expression -> assignment_expression)
-        ((',' assignment_expression)+ -> ^(',' $e assignment_expression+))?
+    :	assignment_expression (','<ExpressionListNode>^ assignment_expression)*
     ;
 
 assignment_expression
     options {
         backtrack = true;
     }
-    :	 lvalue=unary_expression op=assignment_operator rvalue=assignment_expression
+    :	lvalue=unary_expression op=assignment_operator rvalue=assignment_expression
         -> ^(DUMMY<AssignmentExpressionNode> $op $lvalue $rvalue)
     |	conditional_expression
     ;
 
 conditional_expression
-    :	(condition=logical_or_expression -> logical_or_expression)
+    :	condition=logical_or_expression
         (('?' if_true=expression ':' if_false=conditional_expression)
-            -> ^('?'<ConditionalExpressionNode> $condition $if_true $if_false))?
+            -> ^('?'<ConditionalExpressionNode> $condition $if_true $if_false)
+        |   -> $condition
+        )
     ;
 
 logical_or_expression
