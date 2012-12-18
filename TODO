@@ -5,9 +5,8 @@
  * structs
  * pointer to function
  * automatic type casts in expressions
- * function calls
  * all NotImplementedErrors in expressions
- * float, char and string literals
+ * float, char literals
  * initializers
  * argument lists in function definitions
  * abstract declarators
