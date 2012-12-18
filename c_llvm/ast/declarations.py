@@ -1,3 +1,5 @@
+from collections import Counter
+
 from c_llvm.ast.base import AstNode
 from c_llvm.types import PointerType
 from c_llvm.variables import Variable
@@ -57,12 +59,13 @@ class DeclarationNode(AstNode):
 class FunctionDefinitionNode(AstNode):
     child_attributes = {
         'return_type': 0,
-        'name': 1,
-        'body': -1,
+        'declarator': 1,
+        'body': 2,
     }
     template = """
 define %(type)s @%(name)s(%(args)s)
 {
+%(init)s
 %(contents)s
 %(return)s
 }
@@ -72,24 +75,70 @@ define %(type)s @%(name)s(%(args)s)
 %(register2)s = load %(type)s* %(register1)s
 ret %(type)s %(register2)s
 """
+    init_template = """
+%(register)s = alloca %(type)s
+store %(type)s %%%(name)s, %(type)s* %(register)s
+"""
 
     def generate_code(self, state):
-        # TODO: Add the function to the symbol table.
-        # TODO: Verify that the function isn't already defined.
-        type = state.types.get_type(str(self.return_type))
-        state.return_type = type
-        if type.is_void:
+        specifier_type = state.types.get_type(str(self.return_type))
+        state.declaration_stack.append(specifier_type)
+        function_type = self.declarator.get_type(state)
+        state.declaration_stack.pop()
+        name = self.declarator.get_identifier()
+        register = '@%s' % (name,)
+
+        if not function_type.is_function:
+            self.log_error(state, "invalid function definition -- "
+                           "symbol of a non-function type declared")
+            return ""
+
+        if name in state.symbols:
+            declared = state.symbols[name]
+            if declared.type is not function_type:
+                self.log_error(state, "%s already declared as %s" %
+                               declared.type.name)
+                return ""
+            if declared.is_defined:
+                self.log_error(state, "function already defined")
+                return ""
+            declared.is_defined = True
+        else:
+            state.symbols[name] = Variable(name, function_type, register,
+                                           True, True)
+
+        arguments = zip(self.declarator.get_argument_names(state),
+                        function_type.arg_types)
+        arg_init, arg_header = [], []
+        pending_scope = {}
+        for arg_name, arg_type in arguments:
+            arg_header.append("%s %%%s" % (arg_type.llvm_type, arg_name))
+            arg_register = state.get_var_register(arg_name)
+            arg_init.append(self.init_template % {
+                'type': arg_type.llvm_type,
+                'register': arg_register,
+                'name': arg_name,
+            })
+            pending_scope[arg_name] = Variable(arg_name, arg_type,
+                                               arg_register, False)
+
+        state.set_pending_scope(pending_scope)
+
+        return_type = function_type.return_type
+        state.return_type = return_type
+        if return_type.is_void:
             ret_statement = "ret void"
         else:
             ret_statement = self.ret_template % {
-                'type': type.llvm_type,
+                'type': function_type.return_type.llvm_type,
                 'register1': state.get_tmp_register(),
                 'register2': state.get_tmp_register(),
             }
         result = self.template % {
-            'type': type.llvm_type,
-            'name': str(self.name),
-            'args': '', # TODO: use the actual args
+            'type': function_type.return_type.llvm_type,
+            'name': name,
+            'args': ', '.join(arg_header),
+            'init': '\n'.join(arg_init),
             'contents': self.body.generate_code(state),
             'return': ret_statement,
         }
@@ -157,11 +206,6 @@ class FunctionDeclaratorNode(DeclaratorNode):
         if variable_arguments:
             arg_list.pop()
         arg_types = [arg.get_type(state) for arg in arg_list]
-        if len(arg_types) == 0:
-            self.log_error(state, "incomplete function types not supported")
-        elif (not variable_arguments and len(arg_types) == 1 and
-                arg_types[0].is_void):
-            arg_types = []
 
         for i, type in enumerate(arg_types):
             if type.is_void:
@@ -171,6 +215,20 @@ class FunctionDeclaratorNode(DeclaratorNode):
 
         return state.types.get_function_type(return_type, arg_types,
                                              variable_arguments)
+
+    def get_argument_names(self, state):
+        """
+        This should only be called from function definitions as it will
+        log errors only relevant for those.
+        """
+        names = [arg.get_identifier() for arg in self.arg_list.children]
+        if any(name is None for name in names):
+            self.log_error(state, "argument name not provided")
+            return []
+        counter = Counter(names)
+        if counter and counter.most_common(1)[0][1] > 1:
+            self.log_error(state, "duplicate argument name")
+        return names
 
 
 class ParameterListNode(AstNode):

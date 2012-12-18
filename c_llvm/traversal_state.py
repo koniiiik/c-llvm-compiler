@@ -28,10 +28,11 @@ class ScopedSymbolTable(object):
         for d in reversed(self.dicts):
             yield d
 
-    def push(self):
-        d = {}
-        self.dicts.append(d)
-        return d
+    def push(self, scope=None):
+        if scope is None:
+            scope = {}
+        self.dicts.append(scope)
+        return scope
 
     def pop(self):
         if len(self.dicts) == 1:
@@ -87,6 +88,7 @@ class CompilerState(object):
         self.continue_labels = []
         self.switches = []
         self.global_declarations = []
+        self.pending_scope = {}
 
     def _get_next_number(self):
         result = self.next_free_id
@@ -102,11 +104,20 @@ class CompilerState(object):
     def get_label(self):
         return "label%d" % (self._get_next_number(),)
 
+    def set_pending_scope(self, scope):
+        """
+        Sets the initial state of the next scope that's going to be
+        created. Used in function definitions.
+        """
+        self.pending_scope.update(scope)
+
     def enter_block(self):
-        self.symbols.push()
+        self.symbols.push(self.pending_scope)
+        self.pending_scope = {}
 
     def leave_block(self):
         self.symbols.pop()
+        self.pending_scope = {}
 
     def is_global(self):
         """

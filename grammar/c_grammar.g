@@ -34,9 +34,9 @@ external_declaration
     ;
 
 function_definition // TODO
-    :	declaration_specifiers identifier '(' parameter_list ')' compound_statement
+    :	declaration_specifiers declarator compound_statement
         -> ^(DUMMY<FunctionDefinitionNode> declaration_specifiers
-             identifier parameter_list? compound_statement)
+             declarator compound_statement)
     ;
 
 parameter_list

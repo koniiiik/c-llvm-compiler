@@ -427,6 +427,7 @@ class VariableExpressionNode(ExpressionNode):
             var = state.symbols[str(self)]
         except KeyError:
             self.log_error(state, "unknown variable: %s" % (str(self),))
+            print(state.symbols.dicts)
             return ""
 
         if var.type.is_function:
