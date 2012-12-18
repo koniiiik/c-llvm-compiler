@@ -94,3 +94,4 @@ Differences from C99 and known issues
     incomplete types anyway)
  *  LLVM 3.1 doesn't seem to support forward function declarations while
     2.9 does
+ *  no initializer support
