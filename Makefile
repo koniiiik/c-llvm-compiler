@@ -15,7 +15,7 @@ test/%.ll: test/%.c build
 	@echo ===============================================
 	@echo
 	bin/c_llvm.py $<
-	cat $@
+	# to see the code use: cat $@
 	$(LLI) $@
 
 build: c_llvm/parser/$(GRAMMAR)Parser.py c_llvm/parser/__init__.py
