@@ -1,7 +1,9 @@
-int scanf(char *format, ...);
+int printf(char *format, ...);
 
 int main()
 {
-    "Hello world \a\b\t\n\f\r\v\"\'\\\?\n";
+    char *hello_world;
+    hello_world = "Hello world \a\b\t\n\f\r\v\"\'\\\?\n";
+    printf("it wurkz! %d\n%s", 47, hello_world);
     return 0;
 }

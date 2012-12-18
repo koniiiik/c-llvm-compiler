@@ -401,7 +401,7 @@ class FunctionCallNode(ExpressionNode):
             'arg_cast_codes': '',
             'register': register,
             'type': function.type.llvm_type,
-            'name': function.value,
+            'name': function.pointer,
             'arg_values': ', '.join(
                 '%(type)s %(val)s' % {
                     'type': result.type.llvm_type,
