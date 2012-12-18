@@ -107,6 +107,9 @@ class TranslationUnitNode(AstNode):
         children_code = "\n".join(children)
         global_code = "\n".join(state.global_declarations)
 
+        if not children_code.endswith('\n'):
+            children_code += '\n'
+
         return "%s\n\n%s" % (global_code, children_code)
 
 
