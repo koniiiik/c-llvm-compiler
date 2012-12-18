@@ -3,9 +3,8 @@ int main()
     return 0;
 }
 
-//TODO: cast, not fail:
-//int foo() { return 4.0; }
-int foo() {}
+int foo1() { return 4.0; }
+int foo2() {}
 
 int bar() {
     int i;

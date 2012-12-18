@@ -23,7 +23,7 @@ class BinaryExpressionNode(ExpressionNode):
 
         if (left_result.type.is_integer and
                 right_result.type.is_float):
-            code = left_result.type.cast_to_float(left_result, None, state, self)
+            code = left_result.type.cast_to_float(left_result, state)
             left_result = state.pop_result()
             return code, left_result, right_result
         return "", left_result, right_result
@@ -81,14 +81,12 @@ br label %%%(end_label)s
     def generate_code(self, state):
         left_code = self.left.generate_code(state)
         left_result = state.pop_result()
-        left_bool_cast = left_result.type.cast_to_bool(left_result, None,
-                                                       state, self)
+        left_bool_cast = left_result.type.cast_to_bool(left_result, state)
         left_bool_result = state.pop_result()
 
         right_code = self.right.generate_code(state)
         right_result = state.pop_result()
-        right_bool_cast = right_result.type.cast_to_bool(right_result, None,
-                                                         state, self)
+        right_bool_cast = right_result.type.cast_to_bool(right_result, state)
         right_bool_result = state.pop_result()
 
         result_register = state.get_tmp_register()
@@ -649,7 +647,7 @@ class AssignmentExpressionNode(ExpressionNode):
         # TODO: check types and cast for pointers
         assignment = ""
         if not lvalue_result.type.is_pointer:
-            assignment = state.types.cast_value(rvalue_result, lvalue_result, state, self)
+            assignment = state.types.cast_value(rvalue_result, state, lvalue_result.type)
             rvalue_result = state.pop_result()
 
         if assignment != "":

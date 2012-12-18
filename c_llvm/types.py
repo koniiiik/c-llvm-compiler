@@ -80,11 +80,11 @@ class IntType(BaseType):
     def llvm_type(self):
         return 'i%d' % (self.sizeof * 8,)
 
-    def cast_to_int(self, value, target_type, state, ast_node):
+    def cast_to_int(self, value, state):
         state.push_result(value)
         return ""
 
-    def cast_to_float(self, value, target_type, state, ast_node):
+    def cast_to_float(self, value, state):
         target_type = state.types.get_type('float')
         template = "%(register)s = sitofp %(type)s %(value)s to %(target_type)s"
         register = state.get_tmp_register()
@@ -96,7 +96,7 @@ class IntType(BaseType):
             'target_type': target_type.llvm_type,
         }
 
-    def cast_to_bool(self, value, target_type, state, ast_node):
+    def cast_to_bool(self, value, state):
         template = "%(register)s = icmp ne %(type)s %(value)s, 0"
         register = state.get_tmp_register()
         state.set_result(register, state.types.get_type('_Bool'), False)
@@ -114,7 +114,7 @@ class FloatType(BaseType):
     default_value = 0.0
     priority = 4
 
-    def cast_to_int(self, value, target_type, state, ast_node):
+    def cast_to_int(self, value, state):
         target_type = state.types.get_type('int')
         template = "%(register)s = fptosi %(type)s %(value)s to %(target_type)s"
         register = state.get_tmp_register()
@@ -126,7 +126,7 @@ class FloatType(BaseType):
             'target_type': target_type.llvm_type,
         }
 
-    def cast_to_float(self, value, target_type, state, ast_node):
+    def cast_to_float(self, value, state):
         state.push_result(value)
         return ""
 
@@ -250,11 +250,11 @@ class TypeLibrary(object):
             self._types[name] = array_type
             return array_type
 
-    def cast_value(self, value, target_type, state, ast_node):
+    def cast_value(self, value, state, target_type):
         """
         Returns the code required to cast value to target_type and sets
         the state accordingly.
         """
         cast_method = getattr(value.type,
-                              'cast_to_%s' % (target_type.type.internal_type,))
-        return cast_method(value, target_type, state, ast_node)
+                              'cast_to_%s' % (target_type.internal_type,))
+        return cast_method(value, state)

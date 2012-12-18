@@ -36,8 +36,7 @@ If%(num)d.False:
     def generate_code(self, state):
         exp_code = self.exp.generate_code(state)
         exp_result = state.pop_result()
-        exp_cast_code = exp_result.type.cast_to_bool(exp_result, None,
-                                                     state, self)
+        exp_cast_code = exp_result.type.cast_to_bool(exp_result, state)
         exp_cast_result = state.pop_result()
 
         return self.template % {
@@ -72,8 +71,7 @@ If%(num)d.End:
     def generate_code(self, state):
         exp_code = self.exp.generate_code(state)
         exp_result = state.pop_result()
-        exp_cast_code = exp_result.type.cast_to_bool(exp_result, None,
-                                                     state, self)
+        exp_cast_code = exp_result.type.cast_to_bool(exp_result, state)
         exp_cast_result = state.pop_result()
 
         return self.template % {
@@ -99,8 +97,7 @@ class WhileStatement(AstNode):
         state.continue_labels.append("While%d.Body" % num)
         exp_code = self.exp.generate_code(state)
         exp_result = state.pop_result()
-        exp_cast_code = exp_result.type.cast_to_bool(exp_result, None,
-                                                     state, self)
+        exp_cast_code = exp_result.type.cast_to_bool(exp_result, state)
         exp_cast_value = state.pop_result().value
         statement_code = self.statement.generate_code(state)
         state.break_labels.pop()
@@ -186,8 +183,7 @@ For%(num)d.End:
             e2_cast_code = ""
             e2_cast_value = 1
         else:
-            e2_cast_code = e2_result.type.cast_to_bool(e2_result, None,
-                                                       state, self)
+            e2_cast_code = e2_result.type.cast_to_bool(e2_result, state)
             e2_cast_value = state.pop_result().value
 
         e3_code = self.exp3.generate_code(state)
@@ -235,12 +231,15 @@ class ReturnStatementNode(AstNode):
             return "ret void"
         expression_code = self.expression.generate_code(state)
         expression_result = state.pop_result()
-        # TODO: cast
-        if return_type != expression_result.type:
-            self.log_error(state, "incompatible return type")
+        cast_code = state.types.cast_value(expression_result,
+                                           state, return_type)
+        expression_result = state.pop_result()
+        if cast_code != "":
+            cast_code += "\n"
         state.return_found = True
-        return "ret %s %s" % (expression_result.type.llvm_type,
-                              expression_result.value)
+        return cast_code + "ret %s %s" % (
+                expression_result.type.llvm_type,
+                expression_result.value)
 
 
 class SwitchStatementNode(AstNode):
