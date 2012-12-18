@@ -6,7 +6,10 @@ int without_args()
     return 47;
 }
 
-void two_args(int a, int b);
+void two_args(int a, int b)
+{
+    a + b;
+}
 
 int main()
 {
@@ -16,9 +19,4 @@ int main()
     without_args();
     two_args(4, 7);
     return 0;
-}
-
-void two_args(int a, int b)
-{
-    a + b;
 }

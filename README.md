@@ -92,3 +92,5 @@ Differences from C99 and known issues
  *  variables of type pointer to function have not been tested
  *  type composition is not supported obviously (since we don't support
     incomplete types anyway)
+ *  LLVM 3.1 doesn't seem to support forward function declarations while
+    2.9 does
