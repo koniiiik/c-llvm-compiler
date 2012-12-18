@@ -236,6 +236,9 @@ class ReturnStatementNode(AstNode):
         expression_code = self.expression.generate_code(state)
         expression_result = state.pop_result()
         # TODO: cast
+        if return_type != expression_result.type:
+            self.log_error(state, "incompatible return type")
+        state.return_found = True
         return "ret %s %s" % (expression_result.type.llvm_type,
                               expression_result.value)
 

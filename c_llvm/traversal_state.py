@@ -81,6 +81,7 @@ class CompilerState(object):
         # declaration specifiers.
         self.declaration_stack = deque()
         self.errors = []
+        self.warnings = []
         self.next_free_id = 0
         self.last_result = None
         self.return_type = None

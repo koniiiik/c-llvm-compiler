@@ -50,6 +50,13 @@ class AstNode(CommonTree):
             message,
         ))
 
+    def log_warning(self, state, message):
+        state.warnings.append("Warning: %d:%d: %s" % (
+            self.getLine(),
+            self.getCharPositionInLine(),
+            message,
+        ))
+
     def process_children(self, state):
         """
         Process the child nodes and return a list of pieces of output
@@ -103,6 +110,9 @@ class TranslationUnitNode(AstNode):
 
         if state.errors:
             raise CompilationError("\n".join(state.errors))
+
+        if state.warnings:
+            print "\n".join(state.warnings)
 
         children_code = "\n".join(children)
         global_code = "\n".join(state.global_declarations)

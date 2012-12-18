@@ -3,6 +3,16 @@ int main()
     return 0;
 }
 
+//TODO: cast, not fail:
+//int foo() { return 4.0; }
+int foo() {}
+
+int bar() {
+    int i;
+    if(0) return 1;
+    i++;
+}
+
 void statements()
 {
     int i, j, k;
@@ -18,7 +28,7 @@ void statements()
     for (int i; ; i -= 1)
     {
         int i;
-        // This should not be possible:
+        // FIXME: This should not be possible:
         int i;
         if(1)
             continue;

@@ -70,11 +70,6 @@ define %(type)s @%(name)s(%(args)s)
 %(return)s
 }
 """
-    ret_template = """
-%(register1)s = alloca %(type)s
-%(register2)s = load %(type)s* %(register1)s
-ret %(type)s %(register2)s
-"""
     init_template = """
 %(register)s = alloca %(type)s
 store %(type)s %%%(name)s, %(type)s* %(register)s
@@ -126,14 +121,13 @@ store %(type)s %%%(name)s, %(type)s* %(register)s
 
         return_type = function_type.return_type
         state.return_type = return_type
+        state.return_found = False
+        # return something to keep LLVM happy
         if return_type.is_void:
             ret_statement = "ret void"
         else:
-            ret_statement = self.ret_template % {
-                'type': function_type.return_type.llvm_type,
-                'register1': state.get_tmp_register(),
-                'register2': state.get_tmp_register(),
-            }
+            ret_statement = "ret %s undef" % (
+                    function_type.return_type.llvm_type,)
         result = self.template % {
             'type': function_type.return_type.llvm_type,
             'name': name,
@@ -142,6 +136,9 @@ store %(type)s %%%(name)s, %(type)s* %(register)s
             'contents': self.body.generate_code(state),
             'return': ret_statement,
         }
+        if not state.return_found and not state.return_type.is_void:
+            self.log_warning(state, "missing return statement in "
+                    "non void function %s" % self.declarator.get_identifier())
         state.return_type = None
         return result
 
