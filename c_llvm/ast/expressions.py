@@ -371,10 +371,15 @@ class FunctionCallNode(ExpressionNode):
         'function': 0,
         'arguments': 1,
     }
-    template = """
+    template_nonvoid = """
 %(arg_eval_codes)s
 %(arg_cast_codes)s
 %(register)s = call %(type)s* %(name)s(%(arg_values)s)
+"""
+    template_void = """
+%(arg_eval_codes)s
+%(arg_cast_codes)s
+call %(type)s* %(name)s(%(arg_values)s)
 """
 
     def generate_code(self, state):
@@ -404,9 +409,15 @@ class FunctionCallNode(ExpressionNode):
             if result.type is not expected_type:
                 raise NotImplementedError
 
-        register = state.get_tmp_register()
+        if function.type.return_type.is_void:
+            template = self.template_void
+        else:
+            template = self.template_nonvoid
 
-        return self.template % {
+        register = state.get_tmp_register()
+        state.set_result(register, function.type.return_type)
+
+        return template % {
             'arg_eval_codes': '\n'.join(arg_code),
             'arg_cast_codes': '',
             'register': register,
