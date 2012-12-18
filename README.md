@@ -75,3 +75,20 @@ antlr-3.1.3 has been found to be 1.2.3 which can be downloaded from
 [virtualenv]: http://www.virtualenv.org/en/latest/
 [antlrworks1]: http://www.java2s.com/Code/Jar/a/Downloadantlrworks123jar.htm
 [antlrworks2]: http://people.ksp.sk/~johnny64/antlrworks-1.2.3.jar
+
+
+Differences from C99 and known issues
+-------------------------------------
+
+ *  incomplete types are not supported (arrays, function declarations)
+ *  variable-length arrays are not supported
+ *  function definitions and declarations with empty parentheses specify a
+    function that takes no arguments, as opposed to incomplete types;
+    declarations like `int a(void)` are not supported
+ *  no `union` type support
+ *  no compound literals
+ *  no multi-character char literals
+ *  no unicode/widechar character/string literals
+ *  variables of type pointer to function have not been tested
+ *  type composition is not supported obviously (since we don't support
+    incomplete types anyway)
