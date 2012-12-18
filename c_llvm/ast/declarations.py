@@ -7,14 +7,14 @@ from c_llvm.variables import Variable
 
 class DeclarationNode(AstNode):
     child_attributes = {
-        'var_type': 0,
+        'specifier': 0,
         'declarator': 1,
     }
 
     def generate_code(self, state):
         # TODO: check redeclarations
         is_global = state.is_global()
-        state.declaration_stack.append(state.types.get_type(str(self.var_type)))
+        state.declaration_stack.append(self.specifier.get_type(state))
         type = self.declarator.get_type(state)
         identifier = self.declarator.get_identifier()
         state.declaration_stack.pop()
@@ -58,7 +58,7 @@ class DeclarationNode(AstNode):
 
 class FunctionDefinitionNode(AstNode):
     child_attributes = {
-        'return_type': 0,
+        'specifier': 0,
         'declarator': 1,
         'body': 2,
     }
@@ -76,7 +76,7 @@ store %(type)s %%%(name)s, %(type)s* %(register)s
 """
 
     def generate_code(self, state):
-        specifier_type = state.types.get_type(str(self.return_type))
+        specifier_type = self.specifier.get_type(state)
         state.declaration_stack.append(specifier_type)
         function_type = self.declarator.get_type(state)
         state.declaration_stack.pop()
@@ -239,7 +239,7 @@ class ParameterDeclarationNode(AstNode):
     }
 
     def get_type(self, state):
-        state.declaration_stack.append(state.types.get_type(str(self.type_specifier)))
+        state.declaration_stack.append(self.type_specifier.get_type(state))
         type = self.declarator.get_type(state)
         state.declaration_stack.pop()
         return type
@@ -280,3 +280,38 @@ class ArrayDeclaratorNode(DeclaratorNode):
             self.log_error(state, "can't declare an array of functions")
 
         return state.types.get_array_type(target_type, length)
+
+
+class DeclarationSpecifierNode(AstNode):
+    child_attributes = {
+        'storage_class': 0,
+        'type_specifier': 1,
+    }
+
+    def get_type(self, state):
+        return self.type_specifier.get_type(state)
+
+    def is_typedef(self):
+        return str(self.storage_class) == "typedef"
+
+
+class StorageClassNode(AstNode):
+    child_attributes = {
+        'storage_class': 0,
+    }
+
+    def toString(self):
+        if self.getChildCount() < 1:
+            return ""
+        return str(self.storage_class)
+
+
+class TypeSpecifierNode(AstNode):
+    def get_type(self, state):
+        specifiers = reversed(sorted(str(child) for child in self.children))
+        type_name = " ".join(specifiers)
+        try:
+            return state.types.get_type(type_name)
+        except KeyError:
+            self.log_error(state, "invalid type: %s" % (type_name,))
+            return state.types.get_type('void')

@@ -41,7 +41,7 @@ class AstNode(CommonTree):
             super(AstNode, self).__setattr__(name, value)
 
     def dupNode(self):
-        return AstNode(self)
+        return self.__class__(self)
 
     def log_error(self, state, message):
         state.errors.append("%d:%d: %s" % (

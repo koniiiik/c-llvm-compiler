@@ -91,16 +91,34 @@ pointer
     :	'*' TYPE_QUALIFIER*
     ;
 
-declaration_specifiers // TODO
-    :	type_specifier
+declaration_specifiers // TODO: typedef, struct and enum
+    :	ignored_decspec*
+        (   type_specifier (ignored_decspec | type_specifier)* (storage_class_specifier (ignored_decspec | type_specifier)*)?
+        |   storage_class_specifier ignored_decspec* type_specifier (ignored_decspec | type_specifier)*
+        )
+        -> ^(DUMMY<DeclarationSpecifierNode> ^(DUMMY<StorageClassNode> storage_class_specifier?) ^(DUMMY<TypeSpecifierNode> type_specifier+))
     ;
 
+// Only built-in types will appear here, typedef'd names, structs and enums
+// will appear in another rule.
 type_specifier // TODO
     :	'int'
     |	'char'
     |   'float'
     |   'double'
     |	'void'
+    ;
+
+storage_class_specifier
+    :	'typedef'
+    |	'extern'
+    |	'static'
+    |	'auto'
+    |	'register'
+    ;
+
+ignored_decspec
+    :	TYPE_QUALIFIER | 'inline'
     ;
 
 type_name // TODO
