@@ -156,8 +156,70 @@ br label %%%(end_label)s
         return self.template % context
 
 
-class BitwiseExpressionNode(BinaryExpressionNode):
-    pass
+class BitwiseOrExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left | right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, "|'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = or %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
+
+
+class BitwiseXorExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left ^ right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, "^'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = xor %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
+
+
+class BitwiseAndExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left & right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, "&'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = and %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
 
 
 class EqualityExpressionNode(BinaryExpressionNode):
@@ -168,8 +230,48 @@ class RelationalExpressionNode(BinaryExpressionNode):
     pass
 
 
-class ShiftExpressionNode(BinaryExpressionNode):
-    pass
+class ShiftLeftExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left << right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, "<<'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = shl %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
+
+
+class ShiftRightExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left >> right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, ">>'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = lshr %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
 
 
 class AdditionExpressionNode(BinaryArithmeticExpressionNode):
@@ -801,11 +903,11 @@ class AssignmentExpressionNode(ExpressionNode):
         '%=': RemainderExpressionNode.perform_operation,
         '+=': AdditionExpressionNode.perform_operation,
         '-=': SubtractionExpressionNode.perform_operation,
-        '<<=': None,
-        '>>=': None,
-        '&=': None,
-        '^=': None,
-        '|=': None,
+        '<<=': ShiftLeftExpressionNode.perform_operation,
+        '>>=': ShiftRightExpressionNode.perform_operation,
+        '&=': BitwiseAndExpressionNode.perform_operation,
+        '^=': BitwiseXorExpressionNode.perform_operation,
+        '|=': BitwiseOrExpressionNode.perform_operation,
     }
 
     def generate_code(self, state):
@@ -818,9 +920,6 @@ class AssignmentExpressionNode(ExpressionNode):
             return ""
         if str(self.op) in self.compound_operations:
             func = self.compound_operations[str(self.op)]
-            # TODO: remove this
-            if func is None:
-                raise NotImplementedError
             try:
                 operation_code = func(self, state, lvalue_result,
                                       rvalue_result)

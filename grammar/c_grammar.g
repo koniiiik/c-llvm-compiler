@@ -285,15 +285,15 @@ logical_and_expression
     ;
 
 inclusive_or_expression
-    :	exclusive_or_expression ('|'<BitwiseExpressionNode>^ exclusive_or_expression)*
+    :	exclusive_or_expression ('|'<BitwiseOrExpressionNode>^ exclusive_or_expression)*
     ;
 
 exclusive_or_expression
-    :	and_expression ('^'<BitwiseExpressionNode>^ and_expression)*
+    :	and_expression ('^'<BitwiseXorExpressionNode>^ and_expression)*
     ;
 
 and_expression
-    :	equality_expression ('&'<BitwiseExpressionNode>^ equality_expression)*
+    :	equality_expression ('&'<BitwiseAndExpressionNode>^ equality_expression)*
     ;
 
 equality_expression
@@ -305,7 +305,8 @@ relational_expression
     ;
 
 shift_expression
-    :	additive_expression (SHIFT_OPERATOR<ShiftExpressionNode>^ additive_expression)*
+    :	additive_expression (('<<'<ShiftLeftExpressionNode>^
+                             |'>>'<ShiftRightExpressionNode>^) additive_expression)*
     ;
 
 additive_expression
@@ -409,10 +410,6 @@ EQUALITY_OPERATOR
 
 RELATIONAL_OPERATOR
     :	'>'|'<'|'>='|'<='
-    ;
-
-SHIFT_OPERATOR
-    :	'<<'|'>>'
     ;
 
 // Lexer
