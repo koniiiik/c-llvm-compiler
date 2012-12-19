@@ -272,7 +272,114 @@ class SubtractionExpressionNode(BinaryExpressionNode):
 
 
 class MultiplicativeExpressionNode(BinaryExpressionNode):
-    pass
+    template = """
+%(left_code)s
+%(right_code)s
+%(operation_code)s
+"""
+
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return "Surely this does not happen :-)"
+
+        if right_result.is_constant and left_result.is_constant:
+            state.set_result(
+                    self.operation(left_result.value, right_result.value),
+                    self.common_type(left_result.type, right_result.type),
+                    True)
+            return ""
+
+        operation_code = self.perform_operation(self, state, left_result,
+                                                right_result)
+        return self.template % {
+            'left_code': left_code,
+            'right_code': right_code,
+            'operation_code': operation_code,
+        }
+
+
+class MultiplicationExpressionNode(MultiplicativeExpressionNode):
+    def operation(self, left, right):
+        return left * right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_arithmetic) or
+                (not right_result.type.is_arithmetic)):
+            instance.log_error(state, "operands need to be arithmetic type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        operation_code, left_result, right_result = cls.cast_if_necessary(
+                left_result, right_result, state)
+        if operation_code != "":
+            operation_code += "\n"
+        op = "mul"
+        if left_result.type.is_float:
+            op = "fmul"
+        register = state.get_tmp_register()
+        operation_code += "%s = %s %s %s, %s" % (
+            register, op, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
+
+
+class DivisionExpressionNode(MultiplicativeExpressionNode):
+    def operation(self, left, right):
+        return left / right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_arithmetic) or
+                (not right_result.type.is_arithmetic)):
+            instance.log_error(state, "operands need to be arithmetic type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        operation_code, left_result, right_result = cls.cast_if_necessary(
+                left_result, right_result, state)
+        if operation_code != "":
+            operation_code += "\n"
+        op = "sdiv"
+        if left_result.type.is_float:
+            op = "fdiv"
+        register = state.get_tmp_register()
+        operation_code += "%s = %s %s %s, %s" % (
+            register, op, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
+
+
+class RemainderExpressionNode(MultiplicativeExpressionNode):
+    def operation(self, left, right):
+        return left % right
+
+    @classmethod
+    def perform_operation(cls, instance, state, left_result, right_result):
+        if ((not left_result.type.is_integer) or
+                (not right_result.type.is_integer)):
+            instance.log_error(state, "%'s operands need to be integer type")
+            # fake the result, otherwise AssignmentExpressionNode
+            # can't handle the situation
+            state.set_result(left_result.value, left_result.type)
+            return ""
+        register = state.get_tmp_register()
+        operation_code = "%s = srem %s %s, %s" % (
+            register, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        state.set_result(register, left_result.type)
+        return operation_code
 
 
 class CastExpressionNode(BinaryExpressionNode):
@@ -745,9 +852,9 @@ class AssignmentExpressionNode(ExpressionNode):
 %(assignment)s
 """
     compound_operations = {
-        '*=': None,
-        '/=': None,
-        '%=': None,
+        '*=': MultiplicationExpressionNode.perform_operation,
+        '/=': DivisionExpressionNode.perform_operation,
+        '%=': RemainderExpressionNode.perform_operation,
         '+=': AdditionExpressionNode.perform_operation,
         '-=': SubtractionExpressionNode.perform_operation,
         '<<=': None,

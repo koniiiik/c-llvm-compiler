@@ -321,9 +321,9 @@ additive_expression
 multiplicative_expression
     // Ugly in the same way as additive_expression, for the same reasons
     // (token '*').
-    :	cast_expression (('*'<MultiplicativeExpressionNode>^ cast_expression)
-                        |('/'<MultiplicativeExpressionNode>^ cast_expression)
-                        |('%'<MultiplicativeExpressionNode>^ cast_expression))*
+    :	cast_expression (('*'<MultiplicationExpressionNode>^ cast_expression)
+                        |('/'<DivisionExpressionNode>^ cast_expression)
+                        |('%'<RemainderExpressionNode>^ cast_expression))*
     ;
 
 cast_expression
