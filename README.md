@@ -80,7 +80,8 @@ antlr-3.1.3 has been found to be 1.2.3 which can be downloaded from
 Differences from C99 and known issues
 -------------------------------------
 
- *  incomplete types are not supported (arrays, function declarations)
+ *  incomplete types are not supported (arrays, function declarations),
+    except for structs
  *  variable-length arrays are not supported
  *  function definitions and declarations with empty parentheses specify a
     function that takes no arguments, as opposed to incomplete types;
@@ -95,3 +96,4 @@ Differences from C99 and known issues
  *  LLVM 3.1 doesn't seem to support forward function declarations while
     2.9 does
  *  no initializer support
+ *  struct types are not scoped, they are always global

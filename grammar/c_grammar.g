@@ -57,8 +57,12 @@ parameter_declaration // TODO
     ;
 
 declaration
-    :	declaration_specifiers init_declarator (',' init_declarator)* ';'
-        -> ^(DUMMY<DeclarationNode> declaration_specifiers init_declarator)+
+    :	declaration_specifiers
+        (   init_declarator (',' init_declarator)* ';'
+            -> ^(DUMMY<DeclarationNode> declaration_specifiers init_declarator)+
+        |   ';'
+            -> ^(DUMMY<EmptyDeclarationNode> declaration_specifiers)
+        )
     ;
 
 init_declarator // TODO
@@ -91,12 +95,36 @@ pointer
     :	'*' TYPE_QUALIFIER*
     ;
 
-declaration_specifiers // TODO: typedef, struct and enum
+// The following rule is rather ugly but I haven't really found a better
+// way to state it.
+declaration_specifiers
     :	ignored_decspec*
-        (   type_specifier (ignored_decspec | type_specifier)* (storage_class_specifier (ignored_decspec | type_specifier)*)?
-        |   storage_class_specifier ignored_decspec* type_specifier (ignored_decspec | type_specifier)*
+        (   (   type_specifier (ignored_decspec | type_specifier)*
+                (storage_class_specifier (ignored_decspec | type_specifier)*)?
+                -> ^(DUMMY<DeclarationSpecifierNode>
+                     ^(DUMMY<StorageClassNode> storage_class_specifier?)
+                     ^(DUMMY<TypeSpecifierNode> type_specifier+)
+                    )
+            |   storage_class_specifier ignored_decspec*
+                (   type_specifier (ignored_decspec | type_specifier)*
+                    -> ^(DUMMY<DeclarationSpecifierNode>
+                         ^(DUMMY<StorageClassNode> storage_class_specifier?)
+                         ^(DUMMY<TypeSpecifierNode> type_specifier+)
+                        )
+                |   user_type_specifier ignored_decspec*
+                    -> ^(DUMMY<DeclarationSpecifierNode>
+                         ^(DUMMY<StorageClassNode> storage_class_specifier?)
+                         user_type_specifier
+                        )
+                )
+            )
+        |   user_type_specifier ignored_decspec*
+            (storage_class_specifier ignored_decspec*)?
+            -> ^(DUMMY<DeclarationSpecifierNode>
+                 ^(DUMMY<StorageClassNode> storage_class_specifier?)
+                 user_type_specifier
+                )
         )
-        -> ^(DUMMY<DeclarationSpecifierNode> ^(DUMMY<StorageClassNode> storage_class_specifier?) ^(DUMMY<TypeSpecifierNode> type_specifier+))
     ;
 
 // Only built-in types will appear here, typedef'd names, structs and enums
@@ -107,6 +135,41 @@ type_specifier // TODO
     |   'float'
     |   'double'
     |	'void'
+    ;
+
+user_type_specifier // TODO: typedef, enum
+    :	struct_specifier
+    ;
+
+struct_specifier
+    :	'struct' identifier? '{' struct_declaration_list '}'
+        -> ^(DUMMY<StructDefinitionNode> ^(DUMMY<StructIdentifierNode> identifier?) struct_declaration_list)
+    |	'struct' identifier
+       -> ^(DUMMY<StructDeclarationNode> identifier)
+    ;
+
+struct_declaration_list
+    :	struct_declaration+
+        -> ^(DUMMY<StructDeclarationListNode> struct_declaration+)
+    ;
+
+struct_declaration
+    :	specifier_qualifier_list struct_declarator (',' struct_declarator)* ';'
+        -> ^(DUMMY<StructMemberDeclarationNode> specifier_qualifier_list struct_declarator)*
+    ;
+
+specifier_qualifier_list
+    :	TYPE_QUALIFIER*
+        (   type_specifier (TYPE_QUALIFIER | type_specifier)*
+            -> ^(DUMMY<DeclarationSpecifierNode> ^(DUMMY<StorageClassNode>) ^(DUMMY<TypeSpecifierNode> type_specifier+))
+        |   user_type_specifier TYPE_QUALIFIER*
+            -> ^(DUMMY<DeclarationSpecifierNode> ^(DUMMY<StorageClassNode>) user_type_specifier)
+        )
+    ;
+
+struct_declarator
+    :	declarator (':' constant_expression)? -> declarator
+    |	':' constant_expression ->
     ;
 
 storage_class_specifier

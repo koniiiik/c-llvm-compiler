@@ -56,6 +56,21 @@ class DeclarationNode(AstNode):
         return "%s\n" % (super(DeclarationNode, self).toStringTree(),)
 
 
+class EmptyDeclarationNode(AstNode):
+    """
+    This simple node type handles the case of declarations without a
+    declarator. This is used for example in struct declarations where the
+    struct itself is defined but no variable of its type is declared.
+    """
+    child_attributes = {
+        'specifier': 0,
+    }
+
+    def generate_code(self, state):
+        self.specifier.get_type(state)
+        return ""
+
+
 class FunctionDefinitionNode(AstNode):
     child_attributes = {
         'specifier': 0,
@@ -315,3 +330,89 @@ class TypeSpecifierNode(AstNode):
         except KeyError:
             self.log_error(state, "invalid type: %s" % (type_name,))
             return state.types.get_type('void')
+
+
+class StructIdentifierNode(AstNode):
+    child_attributes = {
+        'identifier': 0,
+    }
+
+    def get_identifier(self, state):
+        if self.getChildCount() > 0:
+            return str(self.identifier)
+        return "anonymous.%d" % (state._get_next_number(),)
+
+
+class StructDeclarationListNode(AstNode):
+    def get_declarations(self, state):
+        """
+        Yields a (name, type) pair for each declaration in the child list.
+        """
+        seen_names = set()
+        for child in self.children:
+            name = child.get_identifier()
+            if name in seen_names:
+                self.log_error(state, "duplicate struct member name: %s" % (name,))
+                continue
+            else:
+                seen_names.add(name)
+            type = child.get_type(state)
+            if not type.is_complete:
+                self.log_error(state, "incomplete struct member type: %s" % (name,))
+                continue
+            yield (name, type)
+
+
+class StructMemberDeclarationNode(AstNode):
+    child_attributes = {
+        'specifier': 0,
+        'declarator': 1,
+    }
+
+    def get_identifier(self):
+        return self.declarator.get_identifier()
+
+    def get_type(self, state):
+        specifier_type = self.specifier.get_type(state)
+        state.declaration_stack.append(specifier_type)
+        member_type = self.declarator.get_type(state)
+        state.declaration_stack.pop()
+        return member_type
+
+
+class StructDefinitionNode(AstNode):
+    child_attributes = {
+        'identifier': 0,
+        'definition': 1,
+    }
+    declaration_template = """
+%(alias)s = type %(type)s
+"""
+
+    def get_type(self, state):
+        name = self.identifier.get_identifier(state)
+        struct_type = state.types.get_structure(name)
+        if struct_type.is_complete:
+            self.log_error(state, "redefinition of struct %s" % (name,))
+
+        for member_name, member_type in self.definition.get_declarations(state):
+            struct_type.add_member(member_name, member_type)
+
+        struct_type.is_complete = True
+
+        state.global_declarations.append(self.declaration_template % {
+            'alias': struct_type.llvm_type,
+            'type': struct_type.llvm_full_type,
+        })
+
+        return struct_type
+
+
+class StructDeclarationNode(AstNode):
+    child_attributes = {
+        'identifier': 0,
+    }
+
+    def get_type(self, state):
+        name = str(self.identifier)
+        return state.types.get_structure(name)

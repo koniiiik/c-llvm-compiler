@@ -3,7 +3,7 @@ ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
 LLI ?= lli
 
-SAMPLES = trivial pointers statements functions arrays simple
+SAMPLES = trivial pointers statements functions arrays struct simple
 
 run: $(addprefix test/,$(addsuffix .ll,$(SAMPLES)))
 

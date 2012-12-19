@@ -8,6 +8,7 @@ class BaseType(object):
     internal_type = None
     default_value = 'undef'
     priority = 0
+    is_complete = True
 
     def __init__(self, name):
         self.name = name
@@ -43,6 +44,10 @@ class BaseType(object):
     @property
     def is_function(self):
         return self.internal_type == 'function'
+
+    @property
+    def is_struct(self):
+        return self.internal_type == 'struct'
 
     def cast_to_void(self, *args, **kwargs):
         raise NotImplementedError
@@ -192,10 +197,41 @@ class ArrayType(BaseType):
         return self.length * self.target_type.sizeof
 
 
+class StructType(BaseType):
+    internal_type = 'struct'
+
+    def __init__(self, name, struct_name):
+        self.name = name
+        self.struct_name = struct_name
+        self.member_types = []
+        self.name_indices = {}
+        self.is_complete = False
+
+    @property
+    def llvm_type(self):
+        return "%%struct.%s" % (self.struct_name,)
+
+    @property
+    def llvm_full_type(self):
+        return "{ %s }" % (", ".join(t.llvm_type
+                                     for t in self.member_types),)
+
+    def add_member(self, name, type):
+        self.name_indices[name] = len(self.member_types)
+        self.member_types.append(type)
+
+    def get_member(self, name):
+        """
+        Returns a pair (index, type) for the specified member.
+        """
+        index = self.name_indices[name]
+        return (index, self.member_types[index])
+
+
 class TypeLibrary(object):
     """
     Library of known types. Prepopulated with builtin types, can create
-    derived types (pointers, arrays) on demand.
+    derived types (pointers, arrays, structures) on demand.
     """
     def __init__(self):
         char_type = IntType(sizeof=1, name='char')
@@ -249,6 +285,15 @@ class TypeLibrary(object):
             array_type = ArrayType(name, target_type, length)
             self._types[name] = array_type
             return array_type
+
+    def get_structure(self, struct_name):
+        name = "struct %s" % (struct_name,)
+        try:
+            return self._types[name]
+        except KeyError:
+            struct_type = StructType(name, struct_name)
+            self._types[name] = struct_type
+            return struct_type
 
     def cast_value(self, value, state, target_type):
         """
