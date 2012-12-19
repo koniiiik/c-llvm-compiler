@@ -6,5 +6,4 @@
  * automatic type casts in expressions
  * all NotImplementedErrors in expressions
  * initializers
- * argument lists in function definitions
  * abstract declarators
