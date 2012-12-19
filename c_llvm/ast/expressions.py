@@ -35,6 +35,37 @@ class BinaryExpressionNode(ExpressionNode):
         return right_type
 
 
+class BinaryArithmeticExpressionNode(BinaryExpressionNode):
+    template = """
+%(left_code)s
+%(right_code)s
+%(operation_code)s
+"""
+
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return "Surely this does not happen :-)"
+
+        if right_result.is_constant and left_result.is_constant:
+            state.set_result(
+                    self.operation(left_result.value, right_result.value),
+                    self.common_type(left_result.type, right_result.type),
+                    True)
+            return ""
+
+        operation_code = self.perform_operation(self, state, left_result,
+                                                right_result)
+        return self.template % {
+            'left_code': left_code,
+            'right_code': right_code,
+            'operation_code': operation_code,
+        }
+
+
 class UnaryExpressionNode(ExpressionNode):
     child_attributes = {
         'operand': 0,
@@ -141,12 +172,9 @@ class ShiftExpressionNode(BinaryExpressionNode):
     pass
 
 
-class AdditionExpressionNode(BinaryExpressionNode):
-    template = """
-%(left_code)s
-%(right_code)s
-%(add)s
-"""
+class AdditionExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left + right
 
     @classmethod
     def perform_operation(cls, instance, state, left_result, right_result):
@@ -181,38 +209,10 @@ class AdditionExpressionNode(BinaryExpressionNode):
             raise CompilationError()
         return add
 
-    def generate_code(self, state):
-        left_code = self.left.generate_code(state)
-        left_result = state.pop_result()
-        right_code = self.right.generate_code(state)
-        right_result = state.pop_result()
-        if right_result is None or left_result is None:
-            return ""
 
-        if right_result.is_constant and left_result.is_constant:
-            state.set_result(right_result.value + left_result.value,
-                    self.common_type(left_result.type, right_result.type), True)
-            return ""
-
-        try:
-            add = self.perform_operation(self, state, left_result,
-                                         right_result)
-        except CompilationError:
-            return ""
-
-        return self.template % {
-            'left_code': left_code,
-            'right_code': right_code,
-            'add': add,
-        }
-
-
-class SubtractionExpressionNode(BinaryExpressionNode):
-    template = """
-%(left_code)s
-%(right_code)s
-%(subtract)s
-"""
+class SubtractionExpressionNode(BinaryArithmeticExpressionNode):
+    def operation(self, left, right):
+        return left - right
 
     @classmethod
     def perform_operation(cls, instance, state, left_result, right_result):
@@ -245,64 +245,8 @@ class SubtractionExpressionNode(BinaryExpressionNode):
             raise CompilationError()
         return subtract
 
-    def generate_code(self, state):
-        left_code = self.left.generate_code(state)
-        left_result = state.pop_result()
-        right_code = self.right.generate_code(state)
-        right_result = state.pop_result()
-        if right_result is None or left_result is None:
-            return ""
 
-        if right_result.is_constant and left_result.is_constant:
-            state.set_result(left_result.value - right_result.value,
-                    self.common_type(left_result.type, right_result.type), True)
-            return ""
-
-        try:
-            subtract = self.perform_operation(self, state, left_result,
-                                              right_result)
-        except CompilationError:
-            return ""
-
-        return self.template % {
-            'left_code': left_code,
-            'right_code': right_code,
-            'subtract': subtract,
-        }
-
-
-class MultiplicativeExpressionNode(BinaryExpressionNode):
-    template = """
-%(left_code)s
-%(right_code)s
-%(operation_code)s
-"""
-
-    def generate_code(self, state):
-        left_code = self.left.generate_code(state)
-        left_result = state.pop_result()
-        right_code = self.right.generate_code(state)
-        right_result = state.pop_result()
-        if right_result is None or left_result is None:
-            return "Surely this does not happen :-)"
-
-        if right_result.is_constant and left_result.is_constant:
-            state.set_result(
-                    self.operation(left_result.value, right_result.value),
-                    self.common_type(left_result.type, right_result.type),
-                    True)
-            return ""
-
-        operation_code = self.perform_operation(self, state, left_result,
-                                                right_result)
-        return self.template % {
-            'left_code': left_code,
-            'right_code': right_code,
-            'operation_code': operation_code,
-        }
-
-
-class MultiplicationExpressionNode(MultiplicativeExpressionNode):
+class MultiplicationExpressionNode(BinaryArithmeticExpressionNode):
     def operation(self, left, right):
         return left * right
 
@@ -331,7 +275,7 @@ class MultiplicationExpressionNode(MultiplicativeExpressionNode):
         return operation_code
 
 
-class DivisionExpressionNode(MultiplicativeExpressionNode):
+class DivisionExpressionNode(BinaryArithmeticExpressionNode):
     def operation(self, left, right):
         return left / right
 
@@ -360,7 +304,7 @@ class DivisionExpressionNode(MultiplicativeExpressionNode):
         return operation_code
 
 
-class RemainderExpressionNode(MultiplicativeExpressionNode):
+class RemainderExpressionNode(BinaryArithmeticExpressionNode):
     def operation(self, left, right):
         return left % right
 
