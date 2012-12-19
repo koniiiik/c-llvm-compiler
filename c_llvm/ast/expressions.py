@@ -501,7 +501,7 @@ class CharConstantNode(ExpressionNode):
             else:
                 value = ord(char[1:2])
         else:
-            value = ord(char[1])
+            value = char_escape_seqs[char[1]]
         state.set_result(value,
                          type=state.types.get_type('char'),
                          is_constant=True)
