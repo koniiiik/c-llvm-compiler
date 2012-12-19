@@ -430,6 +430,51 @@ call %(type)s* %(name)s(%(arg_values)s)
         }
 
 
+class StructMemberExpressionNode(ExpressionNode):
+    child_attributes = {
+        'struct': 0,
+        'member': 1,
+    }
+    template_lvalue = """
+%(result_ptr)s = getelementptr %(struct_type)s* %(struct_ptr)s, i32 0, i32 %(index)d
+%(result_reg)s = load %(result_type)s* %(result_ptr)s
+"""
+    template_non_lvalue = """
+%(result_reg)s = extractvalue %(struct_type)s %(struct_val)s, %(index)d
+"""
+
+    def generate_code(self, state):
+        struct_code = self.struct.generate_code(state)
+        struct_result = state.pop_result()
+        if not struct_result.type.is_struct:
+            self.log_error(state, "accessing a member on a non-struct expression")
+            return ""
+
+        member_name = str(self.member)
+        member_index, member_type = struct_result.type.get_member(member_name)
+
+        if struct_result.pointer:
+            pointer_reg = state.get_tmp_register()
+            result_reg = state.get_tmp_register()
+            state.set_result(result_reg, member_type, pointer=pointer_reg)
+            template = self.template_lvalue
+        else:
+            result_reg = state.get_tmp_register()
+            pointer_reg = ""
+            state.set_result(result_reg, member_type)
+            template = self.template_non_lvalue
+
+        return template % {
+            'result_ptr': pointer_reg,
+            'struct_type': struct_result.type.llvm_type,
+            'struct_ptr': struct_result.pointer,
+            'index': member_index,
+            'result_reg': result_reg,
+            'result_type': member_type.llvm_type,
+            'struct_val': struct_result.value,
+        }
+
+
 class VariableExpressionNode(ExpressionNode):
     def generate_code(self, state):
         try:

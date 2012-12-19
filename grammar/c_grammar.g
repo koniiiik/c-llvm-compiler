@@ -356,7 +356,9 @@ postfix_expression
         |   '(' (assignment_expression (',' assignment_expression)*)? ')'
             -> ^(DUMMY<FunctionCallNode> $postfix_expression ^(DUMMY assignment_expression*))
         |   '.' identifier
+            -> ^(DUMMY<StructMemberExpressionNode> $postfix_expression identifier)
         |   '->' identifier
+            -> ^(DUMMY<StructMemberExpressionNode> ^(DUMMY<DereferenceExpressionNode> $postfix_expression) identifier)
         |   '++'
         |   '--'
         )*
