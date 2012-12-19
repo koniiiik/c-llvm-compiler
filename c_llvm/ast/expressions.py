@@ -275,9 +275,30 @@ class MultiplicativeExpressionNode(BinaryExpressionNode):
     pass
 
 
-class CastExpressionNode(ExpressionNode):
-    def toString(self):
-        return ""
+class CastExpressionNode(BinaryExpressionNode):
+    template = """
+%(operand_code)s
+%(cast_code)s
+"""
+
+    def generate_code(self, state):
+        new_type = state.types.get_type(str(self.left))
+        operand_code = self.right.generate_code(state)
+        value = state.pop_result()
+        if value.is_constant:
+            # let's hope we know only two types of constants
+            if new_type.internal_type == 'int':
+                new_value = int(value.value)
+            else:
+                new_value = float(value.value)
+            state.set_result(new_value, new_type, True)
+            return ""
+
+        cast_code = cast_value(value, state, new_type)
+        return self.template % {
+                'operand_code': operand_code,
+                'cast_code': cast_code,
+            }
 
 
 class DereferenceExpressionNode(ExpressionNode):
