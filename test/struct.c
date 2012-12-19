@@ -7,10 +7,11 @@ struct a {
 
 int main()
 {
-    struct a s;
+    struct a s, *p;
     s.i1 = 4;
     s.i2 = 7;
     s.c = '\\';
-    printf("%d %d %c\n", s.i1, s.i2, s.c);
+    p = &s;
+    printf("%d %d %c\n", s.i1, p->i2, s.c);
     return 0;
 }

@@ -523,10 +523,12 @@ class StructMemberExpressionNode(ExpressionNode):
         'member': 1,
     }
     template_lvalue = """
+%(struct_code)s
 %(result_ptr)s = getelementptr %(struct_type)s* %(struct_ptr)s, i32 0, i32 %(index)d
 %(result_reg)s = load %(result_type)s* %(result_ptr)s
 """
     template_non_lvalue = """
+%(struct_code)s
 %(result_reg)s = extractvalue %(struct_type)s %(struct_val)s, %(index)d
 """
 
@@ -552,6 +554,7 @@ class StructMemberExpressionNode(ExpressionNode):
             template = self.template_non_lvalue
 
         return template % {
+            'struct_code': struct_code,
             'result_ptr': pointer_reg,
             'struct_type': struct_result.type.llvm_type,
             'struct_ptr': struct_result.pointer,
