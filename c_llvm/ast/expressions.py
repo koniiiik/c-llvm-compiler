@@ -345,7 +345,7 @@ class CastExpressionNode(BinaryExpressionNode):
             state.set_result(new_value, new_type, True)
             return ""
 
-        cast_code = cast_value(value, state, new_type)
+        cast_code = state.types.cast_value(value, state, new_type)
         return self.template % {
                 'operand_code': operand_code,
                 'cast_code': cast_code,

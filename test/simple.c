@@ -15,7 +15,7 @@ int main() {
     //1 != 2 == 5 % 4;
     //a >>= 1 << 4 < 512;
     int g;
-    g = (int) 4.7;
+    g = (int) b;
     return 0;
 }
 int foo, bar;
