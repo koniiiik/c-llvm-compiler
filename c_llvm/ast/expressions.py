@@ -335,8 +335,41 @@ class AddressExpressionNode(ExpressionNode):
         return expr_code
 
 
-class UnaryArithmeticExpressionNode(ExpressionNode):
-    pass
+class UnaryArithmeticExpressionNode(UnaryExpressionNode):
+    template = """
+%(operand_code)s
+%(result_register)s = %(cmp_instruction)s %(type)s %(value)s, %(cmp_value)s
+"""
+
+    def generate_code(self, state):
+        operand_code = self.operand.generate_code(state)
+        value = state.pop_result()
+        if (not value.type.is_arithmetic):
+            self.log_error(state, "operand is not arithmetic")
+            return ""
+        if value.is_constant:
+            state.set_result(int(str(self) + "1") * value.value,
+                    value.type, True)
+            return ""
+        if str(self) == '+':
+            state.push_result(value)
+            return "%s" % operand_code
+        if value.type.is_float:
+            cmp_instruction = "fmul"
+            cmp_value = "-1.0"
+        else:
+            cmp_instruction = "mul"
+            cmp_value = "-1"
+        result_register = state.get_tmp_register()
+        state.set_result(result_register, value.type)
+        return self.template % {
+                'operand_code': operand_code,
+                'cmp_instruction': cmp_instruction,
+                'cmp_value': cmp_value,
+                'type': value.type.llvm_type,
+                'value': value.value,
+                'result_register': result_register,
+            }
 
 
 class BitwiseNegationExpressionNode(UnaryExpressionNode):
@@ -360,8 +393,41 @@ class BitwiseNegationExpressionNode(UnaryExpressionNode):
                                            value.value)
 
 
-class LogicalNegationExpressionNode(ExpressionNode):
-    pass
+class LogicalNegationExpressionNode(UnaryExpressionNode):
+    template = """
+%(operand_code)s
+%(tmp_register)s = %(cmp_instruction)s %(type)s %(value)s, %(cmp_value)s
+%(result_register)s = zext i1 %(tmp_register)s to i64
+"""
+
+    def generate_code(self, state):
+        operand_code = self.operand.generate_code(state)
+        value = state.pop_result()
+        if (not value.type.is_scalar):
+            self.log_error(state, "operand is not scalar")
+            return ""
+        if value.is_constant:
+            state.set_result(int(not value.value),
+                    state.types.get_type('int'), True)
+            return ""
+        if value.type.is_float:
+            cmp_instruction = "fcmp one"
+            cmp_value = "0.0"
+        else:
+            cmp_instruction = "icmp ne"
+            cmp_value = "0"
+        tmp_register = state.get_tmp_register()
+        result_register = state.get_tmp_register()
+        state.set_result(result_register, state.types.get_type('int'))
+        return self.template % {
+                'operand_code': operand_code,
+                'tmp_register': tmp_register,
+                'cmp_instruction': cmp_instruction,
+                'cmp_value': cmp_value,
+                'type': value.type.llvm_type,
+                'value': value.value,
+                'result_register': result_register,
+            }
 
 
 class FunctionCallNode(ExpressionNode):
