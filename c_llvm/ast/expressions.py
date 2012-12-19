@@ -499,9 +499,9 @@ class CharConstantNode(ExpressionNode):
             elif char[2:].isdigit():
                 value = int(char[2:],base=8)
             else:
-                value = ord(char[1:2])
+                value = char_escape_seqs[char[2]]
         else:
-            value = char_escape_seqs[char[1]]
+            value = ord(char[1])
         state.set_result(value,
                          type=state.types.get_type('char'),
                          is_constant=True)
