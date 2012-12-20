@@ -18,14 +18,18 @@ class BinaryExpressionNode(ExpressionNode):
     @classmethod
     def cast_if_necessary(self, left_result, right_result, state):
         # assuming for both type.is_arithmetic is true (int or float)
-        if right_result.type.is_integer:
-            left_result, right_result = right_result, left_result
-
         if (left_result.type.is_integer and
                 right_result.type.is_float):
             code = left_result.type.cast_to_float(left_result, state)
             left_result = state.pop_result()
             return code, left_result, right_result
+
+        if (left_result.type.is_float and
+                right_result.type.is_integer):
+            code = right_result.type.cast_to_float(right_result, state)
+            right_result = state.pop_result()
+            return code, left_result, right_result
+        
         return "", left_result, right_result
 
     @classmethod
