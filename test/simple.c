@@ -7,6 +7,10 @@ int main() {
     char c;
     c = 'e', !0.0, !0, !3, !.5, !b, !c, !a;
     a = b * c / 4.0 / 5 * 20;
+    // This should fail to compile and it indeed does:
+    // a = 4 % b;
+    // This should fail to compile but does not: (consider it a feature)
+    a = 4 % 3.0;
     a %= 3*(int)4.0;
     // FIXME: a = c % 3;
     a = b + 47 - 42, a += +3, -4, -4.0, +b, -c, -b;
