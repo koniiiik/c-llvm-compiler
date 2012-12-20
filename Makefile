@@ -3,7 +3,7 @@ ANTLR ?= java -jar ../antlr-3.1.3.jar
 ANTLRWORKS ?= java -jar ../antlrworks-1.2.3.jar
 LLI ?= lli
 
-SAMPLES = trivial pointers statements functions arrays struct typedef simple
+SAMPLES = trivial pointers statements functions arrays struct typedef simple fibonacci
 
 run: $(addprefix test/,$(addsuffix .ll,$(SAMPLES)))
 
@@ -31,3 +31,4 @@ edit:
 
 clean:
 	rm -rf c_llvm/parser
+	rm -rf test/*.ll
