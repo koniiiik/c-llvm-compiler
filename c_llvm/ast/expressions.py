@@ -1041,6 +1041,56 @@ class AssignmentExpressionNode(ExpressionNode):
         return ""
 
 
+class PostfixExpressionNode(UnaryExpressionNode):
+    template = """
+%(operand_code)s
+%(operation_code)s
+%(assignment_code)s
+"""
+    compound_operations = {
+        '++': AdditionExpressionNode.perform_operation,
+        '--': SubtractionExpressionNode.perform_operation,
+    }
+
+    def generate_code(self, state):
+        operand_code = self.operand.generate_code(state)
+        value = state.pop_result()
+        lvalue_result = value
+        state.set_result(1, state.types.get_type('int'), True)
+        rvalue_result = state.pop_result()
+        if not lvalue_result.pointer:
+            self.log_error(state, "not an lvalue")
+            return ""
+        func = self.compound_operations[str(self)]
+        try:
+            operation_code = func(self, state, lvalue_result,
+                                  rvalue_result)
+            rvalue_result = state.pop_result()
+        except CompilationError:
+            return ""
+
+        # TODO: check types and cast for pointers
+        assignment = ""
+        if not lvalue_result.type.is_pointer:
+            assignment = state.types.cast_value(rvalue_result, state, lvalue_result.type)
+            rvalue_result = state.pop_result()
+
+        if assignment != "":
+            assignment += "\n"
+
+        assignment += "store %s %s, %s* %s" % (
+            rvalue_result.type.llvm_type, rvalue_result.value,
+            lvalue_result.type.llvm_type, lvalue_result.pointer,
+        )
+        # push the value back and then increment
+        state.push_result(value)
+        return self.template % {
+                'operand_code': operand_code,
+                'operation_code': operation_code,
+                'assignment_code': assignment,
+            }
+
+
 class ConstantOneNode(ExpressionNode):
     def generate_code(self, state):
         state.set_result(value=int(1),

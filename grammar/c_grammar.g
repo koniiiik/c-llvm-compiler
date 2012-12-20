@@ -378,7 +378,9 @@ postfix_expression
         |   '->' identifier
             -> ^(DUMMY<StructMemberExpressionNode> ^(DUMMY<DereferenceExpressionNode> $postfix_expression) identifier)
         |   '++'
+            -> ^('++'<PostfixExpressionNode> $postfix_expression)
         |   '--'
+            -> ^('--'<PostfixExpressionNode> $postfix_expression)
         )*
     ;
 

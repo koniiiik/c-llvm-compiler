@@ -23,6 +23,11 @@ int main() {
     a |= a ^ (int)b & 3 | 1;
     int g;
     g = (int) b;
+    a = 3;
+    if(a++ == 4)
+        return 1;
+    if(a != 4)
+        return 2;
     return 0;
 }
 int foo, bar;

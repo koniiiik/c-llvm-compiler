@@ -10,8 +10,7 @@ int main()
     f[0] = 0;
     f[1] = 1;
     int i;
-    // TODO? i++ does not work!
-    for(i = 0; i < a; ++i) {
+    for(i = 0; i < a; i++) {
         f[i+2] = f[i+1] + f[i];
         printf("%Ld\n", f[i+2]);
     }
