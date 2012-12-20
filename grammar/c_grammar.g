@@ -137,8 +137,9 @@ type_specifier // TODO
     |	'void'
     ;
 
-user_type_specifier // TODO: typedef, enum
+user_type_specifier // TODO: enum
     :	struct_specifier
+    |	identifier -> ^(DUMMY<TypedefSpecifierNode> identifier)
     ;
 
 struct_specifier
@@ -213,8 +214,17 @@ compound_statement
     ;
 
 block_item
-    :	declaration
-    |	statement
+    options {
+        // This is needed because both an expression statement and a
+        // declaration using a typedef'd type can start with an
+        // identifier. Also, the order of alternatives is important as the
+        // first one gets precedence and we want to treat statements
+        // consisting of a single identifier as an expression, not a
+        // declaration.
+        backtrack = true;
+    }
+    :	statement
+    |	declaration
     ;
 
 expression_statement
@@ -234,7 +244,17 @@ selection_statement
 iteration_statement
     :	'while' '(' e=expression ')' s=statement -> ^(DUMMY<WhileNode> $e $s)
     |	'do' s=statement 'while' '(' e=expression ')' ';' -> ^(DUMMY<DoWhileNode> $e $s)
-    |	'for' '(' e1=optional_expression ';' e2=optional_expression ';' e3=optional_expression ')' s=statement ->
+    |	for_statement
+    ;
+
+for_statement
+    options {
+        // This is needed because both an expression statement and a
+        // declaration using a typedef'd type can start with an
+        // identifier.
+        backtrack = true;
+    }
+    :	'for' '(' e1=optional_expression ';' e2=optional_expression ';' e3=optional_expression ')' s=statement ->
             ^(DUMMY<ForNode> $e1 $e2 $e3 $s)
     |	'for' '(' d=declaration e2=optional_expression ';' e3=optional_expression ')' s=statement ->
             ^(DUMMY<ForNode> $d $e2 $e3 $s)

@@ -1,7 +1,7 @@
 from collections import Counter
 
 from c_llvm.ast.base import AstNode
-from c_llvm.types import PointerType
+from c_llvm.types import PointerType, TypedefType
 from c_llvm.variables import Variable
 
 
@@ -22,6 +22,12 @@ class DeclarationNode(AstNode):
         if (declared is not None and not (is_global and declared.type is type)):
             self.log_error(state, "invalid redeclaration of variable %s" %
                            (identifier,))
+
+        if self.specifier.is_typedef():
+            var = Variable(type=TypedefType(type), name=identifier,
+                           register=None, is_global=is_global)
+            state.symbols[identifier] = var
+            return ""
 
         if is_global:
             register = '@%s' % (identifier,)
@@ -423,3 +429,25 @@ class StructDeclarationNode(AstNode):
     def get_type(self, state):
         name = str(self.identifier)
         return state.types.get_structure(name)
+
+
+class TypedefSpecifierNode(AstNode):
+    child_attributes = {
+        'identifier': 0,
+    }
+
+    def get_type(self, state):
+        symbol_name = str(self.identifier)
+        # Returned in case of error.
+        void_type = state.types.get_type('void')
+        try:
+            symbol = state.symbols[symbol_name]
+        except KeyError:
+            self.log_error(state, "unknown identifier: %s" % (symbol_name,))
+            return void_type
+
+        if not symbol.type.is_typedef:
+            self.log_error(state, "not a defined type: %s" % (symbol_name,))
+            return void_type
+
+        return symbol.type.defined_type

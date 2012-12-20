@@ -46,6 +46,10 @@ class BaseType(object):
         return self.internal_type == 'function'
 
     @property
+    def is_typedef(self):
+        return self.internal_type == 'typedef'
+
+    @property
     def is_struct(self):
         return self.internal_type == 'struct'
 
@@ -63,6 +67,20 @@ class BaseType(object):
 
     def cast_to_function(self, *args, **kwargs):
         raise NotImplementedError
+
+
+class TypedefType(BaseType):
+    """
+    This is the type of symbols that are typedef declarations. It is not
+    supposed to be inserted into the type library, each typedef symbol
+    should have its own instance.
+    """
+    is_complete = False
+    name = 'typedef'
+    internal_type = 'typedef'
+
+    def __init__(self, defined_type):
+        self.defined_type = defined_type
 
 
 class VoidType(BaseType):
