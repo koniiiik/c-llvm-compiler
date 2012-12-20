@@ -27,8 +27,6 @@ void statements()
     for (int i; ; i -= 1)
     {
         int i;
-        // FIXME: This should not be possible:
-        int i;
         if(1)
             continue;
         else

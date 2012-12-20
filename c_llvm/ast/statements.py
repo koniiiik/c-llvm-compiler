@@ -90,7 +90,6 @@ class WhileStatement(AstNode):
         'statement': 1
     }
 
-    # TODO We should enter_block here
     def generate_code(self, state):
         num = state._get_next_number()
         state.break_labels.append("While%d.End" % num)
@@ -165,9 +164,8 @@ br label %%For%(num)d.Test
 For%(num)d.End:
 """
 
-    # TODO We should enter_block here.. maybe twice ?
-    # Once for 'for' and then also for statement.
     def generate_code(self, state):
+        state.enter_block()
         num = state._get_next_number()
         state.break_labels.append("For%d.End" % num)
         state.continue_labels.append("For%d.Inc" % num)
@@ -190,6 +188,7 @@ For%(num)d.End:
         statement_code = self.statement.generate_code(state)
         state.break_labels.pop()
         state.continue_labels.pop()
+        state.leave_block()
         return self.template % {
             'e1_code': e1_code,
             'e2_code': e2_code,

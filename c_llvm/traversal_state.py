@@ -69,6 +69,9 @@ class ScopedSymbolTable(object):
                 return d[key]
         return otherwise
 
+    def get_current_scope(self, name, otherwise=None):
+        return self.dicts[-1].get(name, otherwise)
+
 
 ResultType = namedtuple('ResultType', ['value', 'type', 'is_constant', 'pointer'])
 

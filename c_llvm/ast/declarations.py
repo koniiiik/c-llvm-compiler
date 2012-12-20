@@ -12,12 +12,16 @@ class DeclarationNode(AstNode):
     }
 
     def generate_code(self, state):
-        # TODO: check redeclarations
         is_global = state.is_global()
         state.declaration_stack.append(self.specifier.get_type(state))
         type = self.declarator.get_type(state)
         identifier = self.declarator.get_identifier()
         state.declaration_stack.pop()
+
+        declared = state.symbols.get_current_scope(identifier)
+        if (declared is not None and not (is_global and declared.type is type)):
+            self.log_error(state, "invalid redeclaration of variable %s" %
+                           (identifier,))
 
         if is_global:
             register = '@%s' % (identifier,)
@@ -314,6 +318,9 @@ class StorageClassNode(AstNode):
     child_attributes = {
         'storage_class': 0,
     }
+
+    def is_typedef(self):
+        return str(self) == "typedef"
 
     def toString(self):
         if self.getChildCount() < 1:
