@@ -1,7 +1,6 @@
  * type adjustments in function declarations
  * unsigned integers
  * remaining integer types
- * structs
  * pointer to function
  * automatic type casts in expressions
  * all NotImplementedErrors in expressions

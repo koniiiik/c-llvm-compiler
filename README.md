@@ -97,3 +97,4 @@ Differences from C99 and known issues
     2.9 does
  *  no initializer support
  *  struct types are not scoped, they are always global
+ *  function with struct return types have not been tested
