@@ -220,6 +220,11 @@ class ReturnStatementNode(AstNode):
     child_attributes = {
         'expression': 0,
     }
+    template = """
+%(expression_code)s
+%(cast_code)s
+ret %(type)s %(value)s
+"""
 
     def generate_code(self, state):
         return_type = state.return_type
@@ -233,12 +238,13 @@ class ReturnStatementNode(AstNode):
         cast_code = state.types.cast_value(expression_result,
                                            state, return_type)
         expression_result = state.pop_result()
-        if cast_code != "":
-            cast_code += "\n"
         state.return_found = True
-        return cast_code + "ret %s %s" % (
-                expression_result.type.llvm_type,
-                expression_result.value)
+        return self.template % {
+            'expression_code': expression_code,
+            'cast_code': cast_code,
+            'type': return_type.llvm_type,
+            'value': expression_result.value,
+        }
 
 
 class SwitchStatementNode(AstNode):
