@@ -358,7 +358,8 @@ unary_expression
     |	'~'<BitwiseNegationExpressionNode>^ cast_expression
     |	'!'<LogicalNegationExpressionNode>^ cast_expression
     |	sizeof_expression
-    |	('++'|'--') unary_expression
+    |	'++' e=unary_expression -> ^(DUMMY<AssignmentExpressionNode> DUMMY<PlusEqualNode> $e DUMMY<ConstantOneNode>)
+    |	'--' e=unary_expression -> ^(DUMMY<AssignmentExpressionNode> DUMMY<MinusEqualNode> $e DUMMY<ConstantOneNode>)
     ;
 
 sizeof_expression

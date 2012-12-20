@@ -1039,3 +1039,24 @@ class AssignmentExpressionNode(ExpressionNode):
 
     def toString(self):
         return ""
+
+
+class ConstantOneNode(ExpressionNode):
+    def generate_code(self, state):
+        state.set_result(value=int(1),
+                         type=state.types.get_type('int'),
+                         is_constant=True)
+        return ""
+
+    def toString(self):
+        return "1"
+
+
+class PlusEqualNode(ExpressionNode):
+    def toString(self):
+        return "+="
+
+
+class MinusEqualNode(ExpressionNode):
+    def toString(self):
+        return "-="
