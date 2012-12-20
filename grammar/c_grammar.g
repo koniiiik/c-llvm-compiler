@@ -317,11 +317,11 @@ and_expression
     ;
 
 equality_expression
-    :	relational_expression (EQUALITY_OPERATOR<EqualityExpressionNode>^ relational_expression)*
+    :	relational_expression (EQUALITY_OPERATOR<CompareExpressionNode>^ relational_expression)*
     ;
 
 relational_expression
-    :	shift_expression (RELATIONAL_OPERATOR<RelationalExpressionNode>^ shift_expression)*
+    :	shift_expression (RELATIONAL_OPERATOR<CompareExpressionNode>^ shift_expression)*
     ;
 
 shift_expression

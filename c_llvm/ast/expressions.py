@@ -220,12 +220,75 @@ class BitwiseAndExpressionNode(BinaryArithmeticExpressionNode):
         return operation_code
 
 
-class EqualityExpressionNode(BinaryExpressionNode):
-    pass
+class CompareExpressionNode(BinaryExpressionNode):
+    template = """
+%(left_code)s
+%(right_code)s
+%(operation_code)s
+"""
+    operands = {
+        '<': ('slt', 'olt'),
+        '>': ('sgt', 'ogt'),
+        '<=': ('sle', 'ole'),
+        '>=': ('sge', 'oge'),
+        '==': ('eq', 'oeq'),
+        '!=': ('ne', 'one'),
+    }
 
+    def operation(self, left, right):
+        operations = {
+            '<': int(left < right),
+            '>': int(left > right),
+            '<=': int(left <= right),
+            '>=': int(left >= right),
+            '==': int(left == right),
+            '!=': int(left != right),
+        }
+        return operations[str(self)]
 
-class RelationalExpressionNode(BinaryExpressionNode):
-    pass
+    def generate_code(self, state):
+        left_code = self.left.generate_code(state)
+        left_result = state.pop_result()
+        right_code = self.right.generate_code(state)
+        right_result = state.pop_result()
+        if right_result is None or left_result is None:
+            return "Surely this does not happen :-)"
+
+        if right_result.is_constant and left_result.is_constant:
+            state.set_result(
+                    self.operation(left_result.value, right_result.value),
+                    state.types.get_type('int'),
+                    True)
+            return ""
+
+        if ((not left_result.type.is_scalar) or
+                (not right_result.type.is_scalar)):
+            instance.log_error(state, "operands need to be scalar type")
+            return ""
+        operation_code, left_result, right_result = self.cast_if_necessary(
+                left_result, right_result, state)
+        if operation_code != "":
+            operation_code += "\n"
+
+        if left_result.type.is_float:
+            op = "fcmp" + " " + self.operands[str(self)][1]
+        else:
+            op = "icmp" + " " + self.operands[str(self)][0]
+        tmp_register = state.get_tmp_register()
+        operation_code += "%s = %s %s %s, %s\n" % (
+            tmp_register, op, left_result.type.llvm_type,
+            left_result.value, right_result.value
+        )
+        result_register = state.get_tmp_register()
+        operation_code += "%s = zext i1 %s to i64" % (
+            result_register, tmp_register
+        )
+        state.set_result(result_register, state.types.get_type('int'))
+        return self.template % {
+            'left_code': left_code,
+            'right_code': right_code,
+            'operation_code': operation_code,
+        }
 
 
 class ShiftLeftExpressionNode(BinaryArithmeticExpressionNode):
