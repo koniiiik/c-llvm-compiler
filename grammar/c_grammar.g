@@ -289,11 +289,7 @@ assignment_expression
     ;
 
 conditional_expression
-    :	condition=logical_or_expression
-        (('?' if_true=expression ':' if_false=conditional_expression)
-            -> ^('?'<ConditionalExpressionNode> $condition $if_true $if_false)
-        |   -> $condition
-        )
+    :	logical_or_expression ('?'<ConditionalExpressionNode>^ expression ':'! conditional_expression)?
     ;
 
 logical_or_expression

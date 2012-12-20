@@ -96,7 +96,43 @@ class CommaOperatorNode(BinaryExpressionNode):
 
 
 class ConditionalExpressionNode(ExpressionNode):
-    pass
+    child_attributes = {
+        'logical_exp': 0,
+        'expression': 1,
+        'conditional_exp': 2,
+    }
+
+    template = """
+%(exp_code)s
+%(exp_cast_code)s
+br i1 %(exp_cast_value)s, label %%CondIf%(num)d.True, label %%CondIf%(num)d.False
+CondIf%(num)d.True:
+%(statement1_code)s
+br label %%CondIf%(num)d.End
+CondIf%(num)d.False:
+%(statement2_code)s
+br label %%CondIf%(num)d.End
+CondIf%(num)d.End:
+"""
+
+    def generate_code(self, state):
+        exp_code = self.logical_exp.generate_code(state)
+        exp_result = state.pop_result()
+        if exp_result is None:
+            # There was a compilation error somewhere down the line.
+            return ""
+
+        exp_cast_code = exp_result.type.cast_to_bool(exp_result, state)
+        exp_cast_result = state.pop_result()
+
+        return self.template % {
+            'exp_code': exp_code,
+            'exp_cast_code': exp_cast_code,
+            'exp_cast_value': exp_cast_result.value,
+            'num': state._get_next_number(),
+            'statement1_code': self.expression.generate_code(state),
+            'statement2_code': self.conditional_exp.generate_code(state),
+        }
 
 
 class LogicalExpressionNode(BinaryExpressionNode):
