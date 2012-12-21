@@ -306,10 +306,26 @@ class TypeLibrary(object):
         char_type = IntType(sizeof=1, name='char')
         builtins = {
             'void': VoidType(name='void'),
-            'int': IntType(sizeof=8, name='int'),
             'char': CharType(name='char'),
+            'signed char': CharType(name='char'),
+            'short': IntType(sizeof=8, name='int'),
+            'signed short': IntType(sizeof=8, name='int'),
+            'short int': IntType(sizeof=8, name='int'),
+            'signed short int': IntType(sizeof=8, name='int'),
+            'int': IntType(sizeof=8, name='int'),
+            'signed': IntType(sizeof=8, name='int'),
+            'signed int': IntType(sizeof=8, name='int'),
+            'long': IntType(sizeof=8, name='int'),
+            'signed long': IntType(sizeof=8, name='int'),
+            'long int': IntType(sizeof=8, name='int'),
+            'signed long int': IntType(sizeof=8, name='int'),
+            'long long': IntType(sizeof=8, name='int'),
+            'singed long long': IntType(sizeof=8, name='int'),
+            'long long int': IntType(sizeof=8, name='int'),
+            'signed long long int': IntType(sizeof=8, name='int'),
             'float': FloatType(name='float'),
-            'double': FloatType(name='double'),
+            'double': FloatType(name='float'),
+            'long double': FloatType(name='float'),
             '_Bool': BoolType(name='_Bool'),
             # We create the following pointer type explicitly because LLVM
             # doesn't allow void* and suggests using i8* instead.

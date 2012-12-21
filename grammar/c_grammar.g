@@ -130,11 +130,17 @@ declaration_specifiers
 // Only built-in types will appear here, typedef'd names, structs and enums
 // will appear in another rule.
 type_specifier // TODO
-    :	'int'
+    :	'void'
     |	'char'
+    |   'short'
+    |	'int'
+    |   'long'
     |   'float'
     |   'double'
-    |	'void'
+    |   'signed'
+    |   'unsigned'
+    |   '_Bool'
+    |   '_Complex'
     ;
 
 user_type_specifier // TODO: enum

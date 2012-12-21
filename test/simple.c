@@ -29,5 +29,7 @@ int main() {
     if(a != 4)
         return 2;
     return 0;
+    short int e;
+    long long int w;
 }
 int foo, bar;
