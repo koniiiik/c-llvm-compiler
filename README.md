@@ -98,3 +98,4 @@ Differences from C99 and known issues
  *  no initializer support
  *  struct types are not scoped, they are always global
  *  function with struct return types have not been tested
+ *  abstract declarators aren't supported
