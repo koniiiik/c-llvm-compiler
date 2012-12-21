@@ -15,7 +15,7 @@ class BaseType(object):
 
     @property
     def is_integer(self):
-        return self.internal_type in {'int', 'bool'}
+        return self.internal_type in {'char', 'int', 'bool'}
 
     @property
     def is_float(self):
@@ -89,6 +89,41 @@ class VoidType(BaseType):
     internal_type = 'void'
 
 
+class CharType(BaseType):
+    sizeof = 1
+    internal_type = 'char'
+    llvm_type = 'i8'
+    default_value = 0
+    priority = 1
+
+    def cast_to_char(self, value, state):
+        state.push_result(value)
+        return ""
+
+    def cast_to_int(self, value, state):
+        target_type = state.types.get_type('int')
+        register = state.get_tmp_register()
+        state.set_result(register, target_type)
+        return "%s = zext %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
+
+    def cast_to_float(self, value, state):
+        target_type = state.types.get_type('float')
+        register = state.get_tmp_register()
+        state.set_result(register, target_type)
+        return "%s = sitofp %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
+
+    def cast_to_bool(self, value, state):
+        register = state.get_tmp_register()
+        state.set_result(register, state.types.get_type('_Bool'))
+        return "%s = icmp ne %s %s, 0" % (
+            register, self.llvm_type, value.value,
+        )
+
+
 class IntType(BaseType):
     sizeof = 8
     internal_type = 'int'
@@ -103,31 +138,32 @@ class IntType(BaseType):
     def llvm_type(self):
         return 'i%d' % (self.sizeof * 8,)
 
+    def cast_to_char(self, value, state):
+        target_type = state.types.get_type('char')
+        register = state.get_tmp_register()
+        state.set_result(register, target_type)
+        return "%s = trunc %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
+
     def cast_to_int(self, value, state):
         state.push_result(value)
         return ""
 
     def cast_to_float(self, value, state):
         target_type = state.types.get_type('float')
-        template = "%(register)s = sitofp %(type)s %(value)s to %(target_type)s"
         register = state.get_tmp_register()
-        state.set_result(register, target_type, False)
-        return template % {
-            'register': register,
-            'type': self.llvm_type,
-            'value': value.value,
-            'target_type': target_type.llvm_type,
-        }
+        state.set_result(register, target_type)
+        return "%s = sitofp %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
 
     def cast_to_bool(self, value, state):
-        template = "%(register)s = icmp ne %(type)s %(value)s, 0"
         register = state.get_tmp_register()
-        state.set_result(register, state.types.get_type('_Bool'), False)
-        return template % {
-            'register': register,
-            'type': self.llvm_type,
-            'value': value.value,
-        }
+        state.set_result(register, state.types.get_type('_Bool'))
+        return "%s = icmp ne %s %s, 0" % (
+            register, self.llvm_type, value.value,
+        )
 
 
 class FloatType(BaseType):
@@ -137,21 +173,32 @@ class FloatType(BaseType):
     default_value = 0.0
     priority = 4
 
+    def cast_to_char(self, value, state):
+        target_type = state.types.get_type('char')
+        register = state.get_tmp_register()
+        state.set_result(register, target_type)
+        return "%s = fptosi %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
+
     def cast_to_int(self, value, state):
         target_type = state.types.get_type('int')
-        template = "%(register)s = fptosi %(type)s %(value)s to %(target_type)s"
         register = state.get_tmp_register()
-        state.set_result(register, target_type, False)
-        return template % {
-            'register': register,
-            'type': self.llvm_type,
-            'value': value.value,
-            'target_type': target_type.llvm_type,
-        }
+        state.set_result(register, target_type)
+        return "%s = fptosi %s %s to %s" % (
+            register, self.llvm_type, value.value, target_type.llvm_type,
+        )
 
     def cast_to_float(self, value, state):
         state.push_result(value)
         return ""
+
+    def cast_to_bool(self, value, state):
+        register = state.get_tmp_register()
+        state.set_result(register, state.types.get_type('_Bool'))
+        return "%s = fcmp one %s %s, 0.0" % (
+            register, self.llvm_type, value.value,
+        )
 
 
 class BoolType(BaseType):
@@ -159,6 +206,10 @@ class BoolType(BaseType):
     internal_type = 'bool'
     llvm_type = 'i1'
     default_value = 0
+
+    def cast_to_bool(self, value, state):
+        state.push_result(value)
+        return ""
 
 
 class PointerType(BaseType):
@@ -256,7 +307,7 @@ class TypeLibrary(object):
         builtins = {
             'void': VoidType(name='void'),
             'int': IntType(sizeof=8, name='int'),
-            'char': char_type,
+            'char': CharType(name='char'),
             'float': FloatType(name='float'),
             'double': FloatType(name='double'),
             '_Bool': BoolType(name='_Bool'),
